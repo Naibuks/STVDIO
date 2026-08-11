@@ -8,9 +8,9 @@
  * document below is written through Mongoose, so validators, enums, indexes
  * and references are all exercised for real.
  *
- * WARNING — passwords here are stored EXACTLY as written. Hashing arrives in
- * Phase 3 (Authentication). These accounts are not usable logins; re-run the
- * seed after Phase 3 to get hashed credentials.
+ * Passwords are hashed by the User model's pre-save hook, so the accounts
+ * below are real, working logins. The shared password is a well-known
+ * development credential — it must never be used anywhere real.
  */
 
 require("dotenv").config({ quiet: true });
@@ -30,7 +30,11 @@ const {
   NOTIFICATION_TARGETS,
 } = require("./constants");
 
-const PLACEHOLDER_PASSWORD = "CHANGE_ME_AFTER_PHASE_3";
+/**
+ * Development-only credential, shared by every seeded account so the API is
+ * easy to test. Hashed with bcrypt on save like any other password.
+ */
+const DEV_PASSWORD = "Password123!";
 const shouldReset = process.argv.includes("--reset");
 
 /** ₦ to kobo. Money is stored in the minor unit — see Service.price. */
@@ -48,7 +52,7 @@ const seedUsers = () =>
       name: "Ada Okonkwo",
       username: "adaokonkwo",
       email: "ada@example.com",
-      password: PLACEHOLDER_PASSWORD,
+      password: DEV_PASSWORD,
       role: USER_ROLES.CREATIVE,
       bio: "Photographer working between Lagos and Accra. Editorial, portrait, campaign.",
       location: "Lagos, Nigeria",
@@ -61,7 +65,7 @@ const seedUsers = () =>
       name: "Tunde Bakare",
       username: "tundeb",
       email: "tunde@example.com",
-      password: PLACEHOLDER_PASSWORD,
+      password: DEV_PASSWORD,
       role: USER_ROLES.CREATIVE,
       bio: "Graphic designer and type nerd. Identity systems for music and fashion.",
       location: "Abuja, Nigeria",
@@ -72,7 +76,7 @@ const seedUsers = () =>
       name: "Mono Studio",
       username: "monostudio",
       email: "hello@monostudio.example.com",
-      password: PLACEHOLDER_PASSWORD,
+      password: DEV_PASSWORD,
       role: USER_ROLES.BRAND,
       bio: "Independent fashion label. We commission photographers and stylists.",
       location: "Lagos, Nigeria",
@@ -82,7 +86,7 @@ const seedUsers = () =>
       name: "STVDIO Admin",
       username: "stvdio_admin",
       email: "admin@stvdio.example.com",
-      password: PLACEHOLDER_PASSWORD,
+      password: DEV_PASSWORD,
       role: USER_ROLES.ADMIN,
     },
   ]);
@@ -309,15 +313,16 @@ const run = async () => {
   }
   console.table(counts);
 
-  console.log(`\nSeeded users (${admin ? 4 : 0} accounts):`);
-  console.log("  ada@example.com     CREATIVE");
-  console.log("  tunde@example.com   CREATIVE");
-  console.log("  hello@monostudio.example.com  BRAND");
-  console.log("  admin@stvdio.example.com      ADMIN");
+  console.log(`\nSeeded logins (${admin ? 4 : 0} accounts):`);
+  console.log("  ada@example.com                CREATIVE");
+  console.log("  tunde@example.com              CREATIVE");
+  console.log("  hello@monostudio.example.com   BRAND");
+  console.log("  admin@stvdio.example.com       ADMIN");
+  console.log(`\n  Password for all four: ${DEV_PASSWORD}`);
   console.log(
-    `\n! Passwords are the literal string "${PLACEHOLDER_PASSWORD}" and are NOT hashed.`,
+    "\n! Development credentials only — never reuse this password anywhere real.",
   );
-  console.log("! Re-run this seed after Phase 3 to store hashed passwords.");
+  console.log("! Stored as bcrypt hashes via the User model's pre-save hook.");
   console.log("! Comment id for reference:", comment._id.toString());
 };
 

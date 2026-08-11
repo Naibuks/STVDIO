@@ -8,6 +8,7 @@ const { connectDB, disconnectDB } = require("./config/db");
 // Registers every schema with Mongoose so populate() resolves across models.
 require("./models");
 const healthRoutes = require("./routes/health.routes");
+const authRoutes = require("./routes/auth.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const PORT = process.env.PORT || 5000;
@@ -21,11 +22,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/health", healthRoutes);
+app.use("/api/auth", authRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
 const start = async () => {
+  // Authentication is now part of the core API. Booting without a signing key
+  // would let every protected route fail at request time instead of here.
+  if (!process.env.JWT_SECRET) {
+    console.error(
+      "JWT_SECRET is not set. Add it to server/.env — see .env.example.",
+    );
+    process.exit(1);
+  }
+
   // The API is allowed to boot without a database so the foundation can be
   // verified before MongoDB Atlas is provisioned. A URI that is set but
   // unreachable is a real misconfiguration, so we stop instead.

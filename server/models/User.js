@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const mediaSchema = require("./media.schema");
 const { USER_ROLES, CATEGORIES, values } = require("../utils/constants");
+
+/** bcrypt work factor. 12 is a deliberate cost — raising it slows attackers. */
+const SALT_ROUNDS = 12;
 
 const socialLinksSchema = new mongoose.Schema(
   {
@@ -50,8 +54,9 @@ const userSchema = new mongoose.Schema(
       required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters"],
       // Never returned by a query unless explicitly asked for with
-      // .select("+password"). Hashing is added in Phase 3 (Authentication) —
-      // this field currently stores whatever it is given.
+      // .select("+password"). Stored only as a bcrypt hash — see the pre-save
+      // hook below. The minlength above is checked against the plaintext,
+      // because validation runs before save hooks.
       select: false,
     },
     role: {
@@ -141,5 +146,37 @@ userSchema.index({ createdAt: -1 });
 userSchema.virtual("profilePath").get(function () {
   return `/@${this.username}`;
 });
+
+/**
+ * Hash the password whenever it is set or changed.
+ *
+ * Living on the model rather than in a controller means every write path —
+ * register, the seed script, a future password reset, an admin script — is
+ * hashed automatically. There is no route through which a plaintext password
+ * can reach the database.
+ *
+ * `isModified` guards against re-hashing an already-hashed value on unrelated
+ * saves (e.g. updating a bio), which would lock the user out.
+ *
+ * Note: Mongoose 9 removed the `next` callback from document middleware, so
+ * this is an async function that simply returns.
+ */
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
+});
+
+/**
+ * Compare a plaintext candidate against the stored hash.
+ * Requires the document to have been loaded with .select("+password").
+ */
+userSchema.methods.comparePassword = function (candidatePassword) {
+  if (!this.password) {
+    throw new Error(
+      'Password not loaded — query the user with .select("+password")',
+    );
+  }
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model("User", userSchema);
