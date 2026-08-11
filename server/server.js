@@ -9,6 +9,8 @@ const { connectDB, disconnectDB } = require("./config/db");
 require("./models");
 const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+const projectRoutes = require("./routes/project.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const PORT = process.env.PORT || 5000;
@@ -23,6 +25,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/projects", projectRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

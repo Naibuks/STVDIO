@@ -60,6 +60,21 @@ const projectSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    /** Software and equipment used, e.g. "Figma", "Hasselblad 500CM". */
+    tools: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (tools) => tools.length <= 15,
+        message: "A project cannot list more than 15 tools",
+      },
+    },
+    /** Where the work lives publicly — a live site, Behance post, film. */
+    projectUrl: {
+      type: String,
+      trim: true,
+      match: [/^https?:\/\/.+/i, "Project URL must start with http:// or https://"],
+    },
     visibility: {
       type: String,
       enum: {
@@ -79,8 +94,21 @@ const projectSchema = new mongoose.Schema(
     commentsCount: { type: Number, default: 0, min: 0 },
     viewsCount: { type: Number, default: 0, min: 0 },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  },
 );
+
+/**
+ * The first media item doubles as the cover image. Kept as a virtual rather
+ * than a separate stored field so the cover can never drift out of sync with
+ * the media array, and so reordering media reorders the cover for free.
+ */
+projectSchema.virtual("coverImage").get(function () {
+  return this.media?.[0] ?? null;
+});
 
 projectSchema.index({ title: "text", description: "text", tags: "text" });
 // Compound indexes ordered to match how the feed queries: filter, then sort.

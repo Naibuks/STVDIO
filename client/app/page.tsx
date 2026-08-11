@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ApiStatus from "@/components/ApiStatus";
 
 export default function Home() {
@@ -11,13 +12,22 @@ export default function Home() {
           A creative networking, portfolio, collaboration and marketplace
           platform.
         </p>
+
+        <p className="mt-8 font-mono text-[0.65rem] uppercase tracking-widest">
+          <Link
+            href="/profile/adaokonkwo"
+            className="underline underline-offset-4 hover:opacity-60"
+          >
+            View a sample profile
+          </Link>
+        </p>
       </header>
 
       <section className="mt-16 w-full max-w-md font-mono text-xs uppercase tracking-widest">
         <ApiStatus />
         <div className="flex items-baseline justify-between gap-6 border-t border-current/15 py-2">
           <span className="text-current/50">Phase</span>
-          <span>01 — Foundation</span>
+          <span>04 — Profiles &amp; Portfolios</span>
         </div>
       </section>
     </main>

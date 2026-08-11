@@ -17,9 +17,13 @@ const mediaSchema = new mongoose.Schema(
       required: [true, "Media url is required"],
       trim: true,
     },
+    /**
+     * Cloudinary's handle for the asset, needed to delete or transform it.
+     * Optional because media added before the Cloudinary phase is just an
+     * external URL and has no Cloudinary identity.
+     */
     publicId: {
       type: String,
-      required: [true, "Media publicId is required"],
       trim: true,
     },
     resourceType: {

@@ -49,6 +49,31 @@ const authenticate = async (req, res, next) => {
 };
 
 /**
+ * Attach `req.user` when a valid token is present, but never reject.
+ *
+ * Used on routes that are public yet behave differently for the owner — a
+ * private project is visible to its creator and invisible to everyone else.
+ * A bad or expired token is treated as "not logged in" rather than an error,
+ * so a stale token in a browser cannot break public pages.
+ */
+const optionalAuthenticate = async (req, res, next) => {
+  const token = extractToken(req);
+  if (!token) return next();
+
+  try {
+    const payload = verifyAccessToken(token);
+    const user = await User.findById(payload.sub);
+    if (user?.isActive) {
+      req.user = user;
+      req.token = token;
+    }
+  } catch {
+    // Deliberately ignored — an unusable token just means anonymous.
+  }
+  next();
+};
+
+/**
  * Require one of the given roles. Must run after `authenticate`.
  *
  *   router.get("/admin", authenticate, authorizeRoles("ADMIN"), handler)
@@ -78,4 +103,4 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-module.exports = { authenticate, authorizeRoles };
+module.exports = { authenticate, optionalAuthenticate, authorizeRoles };

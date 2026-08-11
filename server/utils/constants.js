@@ -27,6 +27,7 @@ const CATEGORIES = [
   "MUSIC",
   "CONTENT_CREATION",
   "BRANDING",
+  "DEVELOPER",
   "OTHER",
 ];
 

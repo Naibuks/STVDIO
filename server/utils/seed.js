@@ -122,6 +122,8 @@ const run = async () => {
       media: [image("harmattan-01"), image("harmattan-02")],
       category: "PHOTOGRAPHY",
       tags: ["Editorial", "Fashion", "Lagos"],
+      tools: ["Hasselblad 500CM", "Capture One", "Photoshop"],
+      projectUrl: "https://example.com/harmattan",
       owner: ada._id,
       collaborators: [tunde._id],
       visibility: PROJECT_VISIBILITY.PUBLIC,
@@ -132,8 +134,22 @@ const run = async () => {
       media: [image("mono-identity")],
       category: "BRANDING",
       tags: ["Identity", "Typography"],
+      tools: ["Illustrator", "Glyphs", "InDesign"],
+      projectUrl: "https://example.com/mono-identity",
       owner: tunde._id,
       visibility: PROJECT_VISIBILITY.PUBLIC,
+    },
+    {
+      // Private, so the visibility rules are demonstrable straight after seeding:
+      // visible on Ada's own profile, absent from her public one.
+      title: "Unreleased — SS26 Test Shoot",
+      description: "Work in progress. Not for publication until the drop.",
+      media: [image("ss26-test")],
+      category: "PHOTOGRAPHY",
+      tags: ["Unreleased"],
+      tools: ["Hasselblad 500CM"],
+      owner: ada._id,
+      visibility: PROJECT_VISIBILITY.PRIVATE,
     },
   ]);
 
@@ -291,7 +307,7 @@ const run = async () => {
     {
       followersCount: 2,
       followingCount: 1,
-      projectsCount: 1,
+      projectsCount: 2,
       rating: review.rating,
       reviewsCount: 1,
     },
