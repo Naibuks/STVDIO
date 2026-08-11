@@ -59,6 +59,7 @@ const seedUsers = () =>
       skills: ["Photography", "Retouching", "Art direction"],
       categories: ["PHOTOGRAPHY", "CREATIVE_DIRECTION"],
       socialLinks: { instagram: "https://instagram.com/adaokonkwo" },
+      avatar: image("woman"),
       isVerified: true,
     },
     {
@@ -70,6 +71,7 @@ const seedUsers = () =>
       bio: "Graphic designer and type nerd. Identity systems for music and fashion.",
       location: "Abuja, Nigeria",
       skills: ["Brand identity", "Typography", "Editorial design"],
+      avatar: image("sample"),
       categories: ["GRAPHIC_DESIGN", "BRANDING"],
     },
     {
@@ -79,6 +81,7 @@ const seedUsers = () =>
       password: DEV_PASSWORD,
       role: USER_ROLES.BRAND,
       bio: "Independent fashion label. We commission photographers and stylists.",
+      avatar: image("balloons"),
       location: "Lagos, Nigeria",
       categories: ["BRANDING"],
     },
@@ -91,12 +94,22 @@ const seedUsers = () =>
     },
   ]);
 
-const image = (id) => ({
-  url: `https://res.cloudinary.com/demo/image/upload/${id}.jpg`,
-  publicId: `stvdio/seed/${id}`,
+/**
+ * Development media.
+ *
+ * These are real, permanently hosted assets on Cloudinary's public `demo`
+ * account. An earlier version of this seed invented asset names such as
+ * "harmattan-01", which returned 404 and left every card blank — the URL
+ * pattern was right but the assets did not exist.
+ *
+ * `publicId` is the asset's actual Cloudinary public id, so it stays truthful
+ * once real uploads arrive in the Cloudinary phase. No width/height: they
+ * would be guesses about files we do not own.
+ */
+const image = (publicId) => ({
+  url: `https://res.cloudinary.com/demo/image/upload/${publicId}.jpg`,
+  publicId,
   resourceType: "image",
-  width: 1600,
-  height: 1200,
 });
 
 const run = async () => {
@@ -119,7 +132,7 @@ const run = async () => {
     {
       title: "Harmattan — Editorial Series",
       description: "A six-frame series shot on the outskirts of Lagos at dawn.",
-      media: [image("harmattan-01"), image("harmattan-02")],
+      media: [image("woman"), image("lady")],
       category: "PHOTOGRAPHY",
       tags: ["Editorial", "Fashion", "Lagos"],
       tools: ["Hasselblad 500CM", "Capture One", "Photoshop"],
@@ -131,7 +144,7 @@ const run = async () => {
     {
       title: "Mono — Identity System",
       description: "Wordmark, type scale and packaging for an independent label.",
-      media: [image("mono-identity")],
+      media: [image("coffee_cup")],
       category: "BRANDING",
       tags: ["Identity", "Typography"],
       tools: ["Illustrator", "Glyphs", "InDesign"],
@@ -144,7 +157,7 @@ const run = async () => {
       // visible on Ada's own profile, absent from her public one.
       title: "Unreleased — SS26 Test Shoot",
       description: "Work in progress. Not for publication until the drop.",
-      media: [image("ss26-test")],
+      media: [image("couple")],
       category: "PHOTOGRAPHY",
       tags: ["Unreleased"],
       tools: ["Hasselblad 500CM"],
@@ -183,7 +196,7 @@ const run = async () => {
     currency: "NGN",
     deliveryTime: 7,
     deliverables: ["15 retouched images", "Full unedited gallery", "Usage rights"],
-    media: [image("shoot-service")],
+    media: [image("balloons")],
   });
 
   const order = await models.Order.create({

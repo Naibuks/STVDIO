@@ -32,11 +32,14 @@ const register = async ({ name, username, email, password, role }) => {
     .lean();
 
   if (existing) {
-    throw ApiError.conflict(
+    // The field key lets the signup form mark the offending input rather than
+    // showing a general error above the whole form.
+    const [field, message] =
       existing.email === email
-        ? "An account with that email already exists"
-        : "That username is already taken",
-    );
+        ? ["email", "An account with that email already exists"]
+        : ["username", "That username is already taken"];
+
+    throw ApiError.conflict(message, { [field]: message });
   }
 
   const user = await User.create({

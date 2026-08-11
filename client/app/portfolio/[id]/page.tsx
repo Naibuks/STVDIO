@@ -4,6 +4,9 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import LikeButton from "@/components/LikeButton";
+import CommentSection from "@/components/CommentSection";
+import SafeImage from "@/components/SafeImage";
 import { deleteProject, getProject } from "@/services/projects";
 import { formatCategory, formatDate } from "@/lib/format";
 import type { Project } from "@/types/api";
@@ -89,6 +92,14 @@ export default function ProjectDetailPage({
               </p>
             </div>
 
+            <div className="flex items-center gap-3 font-mono text-[0.65rem] uppercase tracking-widest">
+              <LikeButton
+                projectId={project._id}
+                initialCount={project.likesCount}
+                initialLiked={project.likedByMe ?? false}
+              />
+            </div>
+
             {isOwner && (
               <div className="flex gap-3 font-mono text-[0.65rem] uppercase tracking-widest">
                 <Link
@@ -118,12 +129,16 @@ export default function ProjectDetailPage({
 
         <div className="mt-10 space-y-6">
           {project.media.map((item, index) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <SafeImage
               key={`${item.url}-${index}`}
               src={item.url}
               alt={`${project.title} — image ${index + 1}`}
               className="w-full bg-current/5 object-cover"
+              fallback={
+                <div className="flex aspect-[4/3] w-full items-center justify-center bg-current/5 font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
+                  Image unavailable
+                </div>
+              }
             />
           ))}
         </div>
@@ -161,6 +176,11 @@ export default function ProjectDetailPage({
             </div>
           )}
         </dl>
+
+        <CommentSection
+          projectId={project._id}
+          projectOwnerId={project.owner._id}
+        />
       </div>
     </main>
   );

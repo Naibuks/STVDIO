@@ -53,6 +53,7 @@ export default function PublicProfilePage({
       user={data.owner}
       projects={data.projects}
       isOwner={data.isOwner}
+      isFollowing={data.isFollowing}
     />
   );
 }

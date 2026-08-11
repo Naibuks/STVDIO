@@ -6,7 +6,11 @@
  * unexpected 500 and its message is hidden from the client in production.
  */
 class ApiError extends Error {
-  constructor(statusCode, message, details) {
+  /**
+   * @param details  array of human-readable messages (serialised as `errors`)
+   * @param fields   optional { fieldName: message } map for inline form errors
+   */
+  constructor(statusCode, message, details, fields) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
@@ -14,11 +18,12 @@ class ApiError extends Error {
     // safe to show the user, as opposed to an unexpected crash.
     this.isOperational = true;
     if (details) this.details = details;
+    if (fields && Object.keys(fields).length) this.fields = fields;
     Error.captureStackTrace(this, this.constructor);
   }
 
-  static badRequest(message, details) {
-    return new ApiError(400, message, details);
+  static badRequest(message, details, fields) {
+    return new ApiError(400, message, details, fields);
   }
 
   static unauthorized(message = "Authentication required") {
@@ -33,8 +38,8 @@ class ApiError extends Error {
     return new ApiError(404, message);
   }
 
-  static conflict(message) {
-    return new ApiError(409, message);
+  static conflict(message, fields) {
+    return new ApiError(409, message, undefined, fields);
   }
 }
 

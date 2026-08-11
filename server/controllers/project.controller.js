@@ -1,4 +1,5 @@
 const projectService = require("../services/project.service");
+const { isLikedBy } = require("../services/like.service");
 const ApiError = require("../utils/ApiError");
 const { validateProject } = require("../utils/validators");
 
@@ -34,10 +35,14 @@ const getProject = async (req, res) => {
     req.user,
   );
 
+  // Without this the detail page's like button renders unliked for someone who
+  // has already liked the project, and their click fails with a 409.
+  const likedByMe = await isLikedBy(project._id, req.user);
+
   res.json({
     success: true,
     message: "Project retrieved",
-    data: { project, isOwner },
+    data: { project: { ...project.toJSON(), likedByMe }, isOwner },
   });
 };
 

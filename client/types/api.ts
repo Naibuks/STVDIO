@@ -11,6 +11,18 @@ export type ApiError = {
   success: false;
   message: string;
   errors?: string[];
+  /** Per-field messages, present on validation and duplicate-key failures. */
+  fields?: Record<string, string>;
+};
+
+/** Body accepted by POST /auth/register. */
+export type RegisterInput = {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role?: "CREATIVE" | "BRAND";
 };
 
 /** Every non-health endpoint returns this envelope. */
@@ -103,16 +115,82 @@ export type Project = {
   likesCount: number;
   commentsCount: number;
   viewsCount: number;
+  /** Present on feed/portfolio responses when a viewer is signed in. */
+  likedByMe?: boolean;
   createdAt: string;
   updatedAt: string;
 };
 
+/** Only public author fields are ever populated onto a comment. */
+export type CommentAuthor = Pick<
+  User,
+  "_id" | "name" | "username" | "role" | "isVerified"
+> & { avatar?: Media };
+
+export type Comment = {
+  _id: string;
+  content: string;
+  user: CommentAuthor;
+  project: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** Shared shape of every paginated list endpoint. */
+export type Paginated = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+};
+
+export type FeedPayload = Paginated & { projects: Project[] };
+export type CreativesPayload = Paginated & { users: User[] };
+export type CommentsPayload = {
+  comments: Comment[];
+  total: number;
+  page: number;
+  limit: number;
+};
+export type LikeStatePayload = { likesCount: number; likedByMe: boolean };
+export type LikesPayload = {
+  users: User[];
+  total: number;
+  likedByMe: boolean;
+  page: number;
+  limit: number;
+};
+export type FollowStatePayload = {
+  following: boolean;
+  followersCount: number;
+  username: string;
+};
+export type RelationshipPayload = {
+  users: User[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
+export type FeedQuery = {
+  page?: number;
+  limit?: number;
+  category?: Category | "";
+  search?: string;
+};
+
 export type AuthPayload = { user: User; token: string };
-export type ProfilePayload = { user: User };
+export type ProfilePayload = {
+  user: User;
+  isFollowing?: boolean;
+  isSelf?: boolean;
+};
 export type PortfolioPayload = {
   owner: User;
   projects: Project[];
   isOwner: boolean;
+  isFollowing: boolean;
   count: number;
 };
 export type ProjectPayload = { project: Project; isOwner?: boolean };

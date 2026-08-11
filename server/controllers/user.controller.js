@@ -1,4 +1,6 @@
 const userService = require("../services/user.service");
+const followService = require("../services/follow.service");
+const { withLikeState } = require("../services/feed.service");
 const ApiError = require("../utils/ApiError");
 const { validateProfileUpdate } = require("../utils/validators");
 
@@ -29,10 +31,15 @@ const updateMe = async (req, res) => {
 const getPublicProfile = async (req, res) => {
   const user = await userService.getPublicProfile(req.params.username);
 
+  // Lets the FollowButton render the right state on first paint instead of
+  // flashing "Follow" before a second request corrects it.
+  const isFollowing = await followService.isFollowing(user._id, req.user);
+  const isSelf = Boolean(req.user && req.user._id.equals(user._id));
+
   res.json({
     success: true,
     message: "Profile retrieved",
-    data: { user },
+    data: { user, isFollowing, isSelf },
   });
 };
 
@@ -43,10 +50,21 @@ const getUserProjects = async (req, res) => {
     req.user,
   );
 
+  // The profile page renders the FollowButton from this single request, so the
+  // relationship state ships with the portfolio rather than needing a second
+  // round trip.
+  const isFollowing = await followService.isFollowing(owner._id, req.user);
+
   res.json({
     success: true,
     message: "Portfolio retrieved",
-    data: { owner, projects, isOwner, count: projects.length },
+    data: {
+      owner,
+      projects: await withLikeState(projects, req.user),
+      isOwner,
+      isFollowing,
+      count: projects.length,
+    },
   });
 };
 

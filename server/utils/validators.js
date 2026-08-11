@@ -16,45 +16,63 @@ const isString = (v) => typeof v === "string" && v.trim().length > 0;
 
 const validateRegister = (body = {}) => {
   const errors = [];
-  const { name, username, email, password, role } = body;
+  // Keyed by field so the signup form can show each message under its input.
+  // The flat `errors` array is kept alongside it because every existing form
+  // (project, profile, comment) already renders that shape.
+  const fields = {};
+  const fail = (field, message) => {
+    if (!fields[field]) fields[field] = message;
+    errors.push(message);
+  };
+
+  const { name, username, email, password, confirmPassword, role } = body;
 
   if (!isString(name)) {
-    errors.push("Name is required");
+    fail("name", "Name is required");
   } else if (name.trim().length > 80) {
-    errors.push("Name cannot exceed 80 characters");
+    fail("name", "Name cannot exceed 80 characters");
   }
 
   if (!isString(username)) {
-    errors.push("Username is required");
+    fail("username", "Username is required");
   } else if (!/^[a-zA-Z0-9_]{3,30}$/.test(username.trim())) {
-    errors.push(
+    // Mirrors the User model's own regex — underscores but no hyphens.
+    fail(
+      "username",
       "Username must be 3-30 characters and contain only letters, numbers and underscores",
     );
   }
 
   if (!isString(email)) {
-    errors.push("Email is required");
+    fail("email", "Email is required");
   } else if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-    errors.push("Please provide a valid email address");
+    fail("email", "Please provide a valid email address");
   }
 
   if (!isString(password)) {
-    errors.push("Password is required");
+    fail("password", "Password is required");
   } else if (password.length < 8) {
-    errors.push("Password must be at least 8 characters");
+    fail("password", "Password must be at least 8 characters");
   } else if (password.length > 128) {
     // bcrypt silently truncates beyond 72 bytes; cap well before that matters.
-    errors.push("Password cannot exceed 128 characters");
+    fail("password", "Password cannot exceed 128 characters");
+  }
+
+  // Only checked when a value was supplied, so the endpoint stays usable by
+  // API clients that post just email/username/password.
+  if (confirmPassword !== undefined && confirmPassword !== password) {
+    fail("confirmPassword", "Passwords do not match");
   }
 
   if (role !== undefined && !isString(role)) {
-    errors.push("Role must be a string");
+    fail("role", "Role must be a string");
   }
 
   // Only these five keys survive. A request sending isVerified, role: ADMIN,
   // followersCount or rating cannot reach the model through this path.
   return {
     errors,
+    fields,
     value: {
       name: name?.trim(),
       username: username?.trim().toLowerCase(),
@@ -344,10 +362,63 @@ const validateProject = (body = {}, { partial = false } = {}) => {
   return { errors, value };
 };
 
+const MAX_PAGE_SIZE = 48;
+const DEFAULT_PAGE_SIZE = 12;
+
+/**
+ * Validate feed / explore query parameters.
+ *
+ * Everything is coerced and clamped rather than rejected, because a bad page
+ * number in a URL should show page 1, not an error page. `category` is checked
+ * against the existing enum and `search` is passed to MongoDB's $text operator
+ * — never interpolated into a regex — so there is no injection surface.
+ */
+const validateFeedQuery = (query = {}) => {
+  const errors = [];
+
+  const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  const limit = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, Number.parseInt(query.limit, 10) || DEFAULT_PAGE_SIZE),
+  );
+
+  let category;
+  if (query.category) {
+    const candidate = String(query.category).trim().toUpperCase();
+    if (!CATEGORIES.includes(candidate)) {
+      errors.push(
+        `Invalid category: ${candidate}. Allowed: ${CATEGORIES.join(", ")}`,
+      );
+    } else {
+      category = candidate;
+    }
+  }
+
+  const search = query.search ? String(query.search).trim().slice(0, 100) : "";
+
+  return { errors, value: { page, limit, category, search } };
+};
+
+/** Validate a new comment. Author comes from the token, never the body. */
+const validateComment = (body = {}) => {
+  const errors = [];
+  const content = typeof body.content === "string" ? body.content.trim() : "";
+
+  if (!content) errors.push("Comment cannot be empty");
+  else if (content.length > 1000)
+    errors.push("Comment cannot exceed 1000 characters");
+
+  return { errors, value: { content } };
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
   validateProfileUpdate,
   validateProject,
+  validateFeedQuery,
+  validateComment,
   SOCIAL_PLATFORMS,
+  MAX_PAGE_SIZE,
+  DEFAULT_PAGE_SIZE,
 };

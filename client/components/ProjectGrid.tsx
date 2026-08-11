@@ -4,9 +4,13 @@ import type { Project } from "@/types/api";
 export default function ProjectGrid({
   projects,
   emptyMessage = "No work published yet.",
+  interactive = false,
+  showDescription = false,
 }: {
   projects: Project[];
   emptyMessage?: string;
+  interactive?: boolean;
+  showDescription?: boolean;
 }) {
   if (projects.length === 0) {
     return (
@@ -19,7 +23,12 @@ export default function ProjectGrid({
   return (
     <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => (
-        <ProjectCard key={project._id} project={project} />
+        <ProjectCard
+          key={project._id}
+          project={project}
+          interactive={interactive}
+          showDescription={showDescription}
+        />
       ))}
     </div>
   );

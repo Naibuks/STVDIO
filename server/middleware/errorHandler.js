@@ -17,7 +17,12 @@ const notFound = (req, res) => {
  */
 const normalise = (err) => {
   if (err instanceof ApiError) {
-    return { status: err.statusCode, message: err.message, errors: err.details };
+    return {
+      status: err.statusCode,
+      message: err.message,
+      errors: err.details,
+      fields: err.fields,
+    };
   }
 
   // Mongoose schema validation — surface which fields failed.
@@ -51,7 +56,7 @@ const normalise = (err) => {
 // Express identifies error handlers by arity, so `next` must stay declared.
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
-  const { status, message, errors } = normalise(err);
+  const { status, message, errors, fields } = normalise(err);
   const isProduction = process.env.NODE_ENV === "production";
 
   // Log the full error server-side; 5xx only, so a wrong password does not
@@ -65,6 +70,8 @@ const errorHandler = (err, req, res, next) => {
     // An unexpected 500 must not echo an internal message to the client.
     message: status >= 500 && isProduction ? "Internal server error" : message,
     ...(errors && { errors }),
+    // Present only on validation failures that identified specific fields.
+    ...(fields && { fields }),
     // Stack traces can leak file paths and logic — development only.
     ...(!isProduction && status >= 500 && { stack: err.stack }),
   });

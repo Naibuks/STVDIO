@@ -4,6 +4,7 @@ import type {
   PortfolioPayload,
   ProfilePayload,
   ProfileUpdate,
+  RegisterInput,
 } from "@/types/api";
 
 export const login = (email: string, password: string) =>
@@ -12,13 +13,7 @@ export const login = (email: string, password: string) =>
     body: json({ email, password }),
   });
 
-export const register = (input: {
-  name: string;
-  username: string;
-  email: string;
-  password: string;
-  role?: string;
-}) =>
+export const register = (input: RegisterInput) =>
   apiData<AuthPayload>("/auth/register", {
     method: "POST",
     body: json(input),

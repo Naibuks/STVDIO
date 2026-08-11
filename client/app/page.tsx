@@ -13,12 +13,18 @@ export default function Home() {
           platform.
         </p>
 
-        <p className="mt-8 font-mono text-[0.65rem] uppercase tracking-widest">
+        <p className="mt-8 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[0.65rem] uppercase tracking-widest">
           <Link
-            href="/profile/adaokonkwo"
+            href="/feed"
             className="underline underline-offset-4 hover:opacity-60"
           >
-            View a sample profile
+            Enter the feed
+          </Link>
+          <Link
+            href="/explore"
+            className="underline underline-offset-4 hover:opacity-60"
+          >
+            Explore creatives
           </Link>
         </p>
       </header>
@@ -27,7 +33,7 @@ export default function Home() {
         <ApiStatus />
         <div className="flex items-baseline justify-between gap-6 border-t border-current/15 py-2">
           <span className="text-current/50">Phase</span>
-          <span>04 — Profiles &amp; Portfolios</span>
+          <span>05 — Creative Social Feed</span>
         </div>
       </section>
     </main>

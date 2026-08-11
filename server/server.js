@@ -11,6 +11,8 @@ const healthRoutes = require("./routes/health.routes");
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const projectRoutes = require("./routes/project.routes");
+const feedRoutes = require("./routes/feed.routes");
+const commentRoutes = require("./routes/comment.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const PORT = process.env.PORT || 5000;
@@ -27,6 +29,8 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/feed", feedRoutes);
+app.use("/api/comments", commentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

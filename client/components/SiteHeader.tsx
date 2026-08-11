@@ -13,6 +13,12 @@ export default function SiteHeader() {
       </Link>
 
       <nav className="flex items-baseline gap-5 font-mono text-[0.65rem] uppercase tracking-widest">
+        <Link href="/feed" className="hover:opacity-60">
+          Feed
+        </Link>
+        <Link href="/explore" className="hover:opacity-60">
+          Explore
+        </Link>
         {loading ? null : user ? (
           <>
             <Link href="/portfolio/new" className="hover:opacity-60">
@@ -30,9 +36,17 @@ export default function SiteHeader() {
             </button>
           </>
         ) : (
-          <Link href="/login" className="hover:opacity-60">
-            Sign in
-          </Link>
+          <>
+            <Link href="/login" className="hover:opacity-60">
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className="border border-current px-3 py-1.5 hover:bg-current/5"
+            >
+              Join
+            </Link>
+          </>
         )}
       </nav>
     </header>

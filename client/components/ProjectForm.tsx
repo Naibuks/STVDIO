@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import SafeImage from "./SafeImage";
 import { formatCategory } from "@/lib/format";
 import {
   CATEGORIES,
@@ -133,12 +134,16 @@ export default function ProjectForm({
       {previews.length > 0 && (
         <div className="flex flex-wrap gap-3">
           {previews.map((url, index) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <SafeImage
               key={`${url}-${index}`}
               src={url}
               alt={`Preview ${index + 1}`}
               className="h-20 w-20 border border-current/15 object-cover"
+              fallback={
+                <div className="flex h-20 w-20 items-center justify-center border border-dashed border-current/25 text-center font-mono text-[0.5rem] uppercase leading-tight tracking-widest text-current/40">
+                  Can&rsquo;t load
+                </div>
+              }
             />
           ))}
         </div>

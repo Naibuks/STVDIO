@@ -6,12 +6,20 @@ import type { ApiError, ApiResponse, HealthResponse } from "@/types/api";
 export class ApiRequestError extends Error {
   status: number;
   errors?: string[];
+  /** Per-field messages, present on validation and duplicate-key failures. */
+  fields?: Record<string, string>;
 
-  constructor(message: string, status: number, errors?: string[]) {
+  constructor(
+    message: string,
+    status: number,
+    errors?: string[],
+    fields?: Record<string, string>,
+  ) {
     super(message);
     this.name = "ApiRequestError";
     this.status = status;
     this.errors = errors;
+    this.fields = fields;
   }
 }
 
@@ -43,6 +51,7 @@ export async function apiRequest<T>(
       error?.message ?? response.statusText,
       response.status,
       error?.errors,
+      error?.fields,
     );
   }
 

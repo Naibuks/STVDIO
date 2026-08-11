@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -76,6 +77,16 @@ export default function LoginPage() {
           {submitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
+
+      <p className="mt-8 font-mono text-[0.65rem] uppercase tracking-widest text-current/50">
+        New here?{" "}
+        <Link
+          href="/signup"
+          className="underline underline-offset-4 hover:opacity-60"
+        >
+          Create an account
+        </Link>
+      </p>
     </main>
   );
 }

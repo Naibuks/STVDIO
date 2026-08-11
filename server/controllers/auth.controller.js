@@ -12,9 +12,9 @@ const { validateRegister, validateLogin } = require("../utils/validators");
 
 /** POST /api/auth/register */
 const register = async (req, res) => {
-  const { errors, value } = validateRegister(req.body);
+  const { errors, fields, value } = validateRegister(req.body);
   if (errors.length) {
-    throw ApiError.badRequest("Validation failed", errors);
+    throw ApiError.badRequest("Validation failed", errors, fields);
   }
 
   const { user, token } = await authService.register(value);

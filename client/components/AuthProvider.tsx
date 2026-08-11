@@ -9,13 +9,15 @@ import {
 } from "react";
 import { clearToken, getToken, setToken } from "@/lib/auth";
 import * as usersApi from "@/services/users";
-import type { User } from "@/types/api";
+import type { RegisterInput, User } from "@/types/api";
 
 type AuthState = {
   user: User | null;
   /** True until the stored token has been checked against the API. */
   loading: boolean;
   signIn: (email: string, password: string) => Promise<User>;
+  /** Create an account and sign straight in — /auth/register returns a token. */
+  signUp: (input: RegisterInput) => Promise<User>;
   signOut: () => void;
   /** Replace the cached user after a profile edit. */
   setUser: (user: User) => void;
@@ -62,13 +64,26 @@ export default function AuthProvider({
     return user;
   }, []);
 
+  /**
+   * Registration returns the same { user, token } pair as login, so the new
+   * account is signed in immediately rather than bouncing through /login.
+   */
+  const signUp = useCallback(async (input: RegisterInput) => {
+    const { user, token } = await usersApi.register(input);
+    setToken(token);
+    setUser(user);
+    return user;
+  }, []);
+
   const signOut = useCallback(() => {
     clearToken();
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signOut, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, signIn, signUp, signOut, setUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
