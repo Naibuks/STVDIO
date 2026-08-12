@@ -17,6 +17,7 @@ const serviceRoutes = require("./routes/service.routes");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
+const emailService = require("./services/email/email.service");
 
 const PORT = process.env.PORT || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
@@ -85,6 +86,13 @@ const start = async () => {
   const server = app.listen(PORT, () => {
     console.log(`STVDIO° API running on http://localhost:${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+    // Whether email is on, never what the key is. Silent skipping would be
+    // very hard to diagnose from a missing inbox alone.
+    console.log(
+      emailService.isConfigured()
+        ? "Email: Resend configured"
+        : "Email: not configured — set RESEND_API_KEY and EMAIL_FROM in server/.env to enable sending",
+    );
   });
 
   server.on("error", (error) => {

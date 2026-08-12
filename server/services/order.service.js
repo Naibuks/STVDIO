@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const { Order, Service } = require("../models");
+const { Order, Service, User } = require("../models");
+const emailService = require("./email/email.service");
 const ApiError = require("../utils/ApiError");
 const { ORDER_STATUS, USER_ROLES } = require("../utils/constants");
 
@@ -118,7 +119,33 @@ const create = async (client, { serviceId, requirements }) => {
 
   await Service.updateOne({ _id: service._id }, { $inc: { ordersCount: 1 } });
 
-  return populateOrder(Order.findById(order._id));
+  const populated = await populateOrder(Order.findById(order._id));
+
+  // Both sides are told at once: the buyer gets a confirmation, the seller a
+  // new-order notice. The populated documents only carry public fields, so the
+  // recipients' addresses are fetched separately.
+  emailService.dispatch(async () => {
+    const [buyer, seller] = await Promise.all([
+      User.findById(order.client).select("name email"),
+      User.findById(order.creative).select("name email"),
+    ]);
+    if (!buyer || !seller) return;
+
+    await Promise.all([
+      emailService.sendOrderConfirmation({
+        order: populated,
+        client: buyer,
+        creative: seller,
+      }),
+      emailService.sendNewOrderNotification({
+        order: populated,
+        client: buyer,
+        creative: seller,
+      }),
+    ]);
+  });
+
+  return populated;
 };
 
 /**
@@ -182,10 +209,32 @@ const updateStatus = async (orderId, actor, nextStatus) => {
     );
   }
 
+  const previousStatus = order.status;
+
   order.status = nextStatus;
   if (nextStatus === ORDER_STATUS.COMPLETED) order.completedAt = new Date();
   if (nextStatus === ORDER_STATUS.CANCELLED) order.cancelledAt = new Date();
   await order.save();
+
+  /**
+   * The counterparty is notified, not the person who made the change —
+   * emailing someone about their own click is noise. In practice this is the
+   * client hearing that the creative accepted or delivered, and the creative
+   * hearing that the client approved or cancelled.
+   */
+  const recipientId = relation === "client" ? order.creative : order.client;
+  emailService.dispatch(async () => {
+    const recipient = await User.findById(
+      recipientId?._id ?? recipientId,
+    ).select("name email");
+    if (!recipient) return;
+
+    await emailService.sendOrderStatusUpdate({
+      order,
+      recipient,
+      previousStatus,
+    });
+  });
 
   return order;
 };

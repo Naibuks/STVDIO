@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const { Order, Payment } = require("../models");
+const { Order, Payment, User } = require("../models");
+const emailService = require("./email/email.service");
 const ApiError = require("../utils/ApiError");
 const {
   ORDER_STATUS,
@@ -176,6 +177,29 @@ const applySuccessfulTransaction = async (payment, transaction) => {
   order.paystackReference = payment.reference;
   order.paidAt = payment.paidAt;
   await order.save();
+
+  /**
+   * The receipt is sent from here and nowhere else.
+   *
+   * This function is the only path to a PAID order, and it is reached solely
+   * after Paystack's own verify response has been checked — by the verify
+   * endpoint and by the webhook alike. A browser reporting success cannot
+   * reach this line, so a "payment received" email can never be sent for a
+   * payment that did not happen.
+   *
+   * Guarded by the alreadyApplied short-circuit above, so a webhook redelivery
+   * or a second verify does not send a duplicate receipt.
+   */
+  emailService.dispatch(async () => {
+    const buyer = await User.findById(payment.user).select("name email");
+    if (!buyer) return;
+
+    await emailService.sendPaymentConfirmation({
+      order,
+      payment,
+      client: buyer,
+    });
+  });
 
   return { payment, order, alreadyApplied: false };
 };

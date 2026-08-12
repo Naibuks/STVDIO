@@ -2,6 +2,9 @@ const { User } = require("../models");
 const ApiError = require("../utils/ApiError");
 const { USER_ROLES } = require("../utils/constants");
 const { signAccessToken } = require("./token.service");
+// Named emailService, not email: `register` already has an `email` parameter
+// and shadowing it here would be a silent bug.
+const emailService = require("./email/email.service");
 
 /**
  * Roles a member of the public may choose at registration.
@@ -49,6 +52,10 @@ const register = async ({ name, username, email, password, role }) => {
     password,
     role: role || USER_ROLES.CREATIVE,
   });
+
+  // Dispatched, not awaited: a slow or failing mail provider must never stop
+  // an account from being created.
+  emailService.dispatch(() => emailService.sendWelcome(user));
 
   return { user, token: signAccessToken(user) };
 };
