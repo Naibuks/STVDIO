@@ -411,6 +411,167 @@ const validateComment = (body = {}) => {
   return { errors, value: { content } };
 };
 
+const { CURRENCIES, ORDER_STATUS } = require("./constants");
+
+/**
+ * Validate a marketplace service.
+ *
+ * `partial` mode is used by PUT so an update only touches the keys supplied.
+ * `creator`, `ordersCount`, `rating` and `reviewsCount` are absent from the
+ * whitelist — ownership comes from the token and the counters are maintained
+ * by the server, never by the client.
+ */
+const validateService = (body = {}, { partial = false } = {}) => {
+  const errors = [];
+  const fields = {};
+  const value = {};
+  const fail = (field, message) => {
+    if (!fields[field]) fields[field] = message;
+    errors.push(message);
+  };
+  const has = (key) => (partial ? key in body : true);
+
+  if (has("title")) {
+    if (!isString(body.title)) fail("title", "Title is required");
+    else if (body.title.trim().length > 120)
+      fail("title", "Title cannot exceed 120 characters");
+    else value.title = body.title.trim();
+  }
+
+  if (has("description")) {
+    if (!isString(body.description))
+      fail("description", "Description is required");
+    else if (body.description.trim().length > 5000)
+      fail("description", "Description cannot exceed 5000 characters");
+    else value.description = body.description.trim();
+  }
+
+  if (has("category")) {
+    const category = String(body.category ?? "").trim().toUpperCase();
+    if (!category) fail("category", "Category is required");
+    else if (!CATEGORIES.includes(category))
+      fail(
+        "category",
+        `Invalid category: ${category}. Allowed: ${CATEGORIES.join(", ")}`,
+      );
+    else value.category = category;
+  }
+
+  if (has("price")) {
+    // Minor units (kobo). A float here would be a rounding bug waiting to
+    // happen and Paystack expects the minor unit anyway.
+    const price = Number(body.price);
+    if (body.price === undefined || body.price === null || body.price === "")
+      fail("price", "Price is required");
+    else if (!Number.isFinite(price) || !Number.isInteger(price))
+      fail("price", "Price must be a whole number in the currency's minor unit");
+    else if (price < 0) fail("price", "Price cannot be negative");
+    else value.price = price;
+  }
+
+  if ("currency" in body) {
+    const currency = String(body.currency).trim().toUpperCase();
+    if (!CURRENCIES.includes(currency))
+      fail(
+        "currency",
+        `Invalid currency. Allowed: ${CURRENCIES.join(", ")}`,
+      );
+    else value.currency = currency;
+  }
+
+  if (has("deliveryTime")) {
+    const days = Number(body.deliveryTime);
+    if (!Number.isInteger(days))
+      fail("deliveryTime", "Delivery time must be a whole number of days");
+    else if (days < 1 || days > 365)
+      fail("deliveryTime", "Delivery time must be between 1 and 365 days");
+    else value.deliveryTime = days;
+  }
+
+  if ("deliverables" in body) {
+    if (!Array.isArray(body.deliverables))
+      fail("deliverables", "Deliverables must be an array");
+    else if (body.deliverables.length > 10)
+      fail("deliverables", "A service cannot list more than 10 deliverables");
+    else if (anyTooLong(body.deliverables, 120))
+      fail("deliverables", "Each deliverable must be 120 characters or fewer");
+    else value.deliverables = cleanStringList(body.deliverables);
+  }
+
+  if ("media" in body) {
+    if (!Array.isArray(body.media)) fail("media", "Media must be an array");
+    else if (body.media.length > 10)
+      fail("media", "A service cannot have more than 10 media items");
+    else {
+      const parsed = body.media.map(parseMediaItem);
+      if (parsed.some((m) => !m || !isHttpUrl(m.url)))
+        fail("media", "Every media item needs a valid http(s) url");
+      else value.media = parsed;
+    }
+  }
+
+  // Only meaningful on update — this is how a deactivated service is relisted.
+  if ("isActive" in body) {
+    if (typeof body.isActive !== "boolean")
+      fail("isActive", "isActive must be true or false");
+    else value.isActive = body.isActive;
+  }
+
+  if (partial && !errors.length && Object.keys(value).length === 0) {
+    fail("form", "No updatable fields were provided");
+  }
+
+  return { errors, fields, value };
+};
+
+/**
+ * Validate an order request.
+ *
+ * Only the service and the buyer's requirements are accepted. Price, currency,
+ * creative and client are all derived server-side — see order.service.
+ */
+const validateOrder = (body = {}) => {
+  const errors = [];
+  const fields = {};
+
+  const serviceId = body.service ?? body.serviceId;
+  if (!isString(serviceId)) {
+    fields.service = "A service is required";
+    errors.push("A service is required");
+  }
+
+  const requirements =
+    body.requirements == null ? "" : String(body.requirements).trim();
+  if (requirements.length > 2000) {
+    fields.requirements = "Requirements cannot exceed 2000 characters";
+    errors.push("Requirements cannot exceed 2000 characters");
+  }
+
+  return {
+    errors,
+    fields,
+    value: { serviceId: isString(serviceId) ? serviceId.trim() : "", requirements },
+  };
+};
+
+/** Validate a requested order-status transition. */
+const validateOrderStatus = (body = {}) => {
+  const errors = [];
+  const fields = {};
+  const status = String(body.status ?? "").trim().toUpperCase();
+
+  if (!status) {
+    fields.status = "A status is required";
+    errors.push("A status is required");
+  } else if (!values(ORDER_STATUS).includes(status)) {
+    const message = `Invalid status. Allowed: ${values(ORDER_STATUS).join(", ")}`;
+    fields.status = message;
+    errors.push(message);
+  }
+
+  return { errors, fields, value: { status } };
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -418,6 +579,9 @@ module.exports = {
   validateProject,
   validateFeedQuery,
   validateComment,
+  validateService,
+  validateOrder,
+  validateOrderStatus,
   SOCIAL_PLATFORMS,
   MAX_PAGE_SIZE,
   DEFAULT_PAGE_SIZE,

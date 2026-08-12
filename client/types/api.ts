@@ -180,6 +180,117 @@ export type FeedQuery = {
   search?: string;
 };
 
+// --- Marketplace (Phase 6) -------------------------------------------------
+
+export const CURRENCIES = ["NGN", "USD", "GHS", "ZAR", "KES"] as const;
+export type Currency = (typeof CURRENCIES)[number];
+
+export const ORDER_STATUSES = [
+  "PENDING",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "DELIVERED",
+  "COMPLETED",
+  "CANCELLED",
+  "DISPUTED",
+] as const;
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+
+export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+
+/** Public creator summary attached to a listing. */
+export type ServiceCreator = Pick<
+  User,
+  "_id" | "name" | "username" | "role" | "isVerified" | "rating" | "reviewsCount"
+> & { avatar?: Media };
+
+export type Service = {
+  _id: string;
+  title: string;
+  description: string;
+  creator: ServiceCreator;
+  category: Category;
+  /** Minor units — see lib/money.ts. */
+  price: number;
+  currency: Currency;
+  /** Turnaround in days. */
+  deliveryTime: number;
+  deliverables: string[];
+  media: Media[];
+  isActive: boolean;
+  ordersCount: number;
+  rating: number;
+  reviewsCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrderParty = Pick<
+  User,
+  "_id" | "name" | "username" | "role"
+> & { avatar?: Media; isVerified?: boolean };
+
+export type Order = {
+  _id: string;
+  client: OrderParty;
+  creative: OrderParty;
+  service: Pick<
+    Service,
+    "_id" | "title" | "category" | "price" | "currency" | "deliveryTime" | "isActive"
+  > & { media?: Media[] };
+  /** Frozen copy taken when the order was placed. */
+  serviceSnapshot: {
+    title: string;
+    price: number;
+    currency: Currency;
+    deliveryTime: number;
+  };
+  amount: number;
+  currency: Currency;
+  status: OrderStatus;
+  /** Populated in Phase 7; always PENDING for now. */
+  paymentStatus: PaymentStatus;
+  requirements?: string;
+  dueAt?: string;
+  completedAt?: string;
+  cancelledAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  /** Statuses the current viewer is allowed to move this order to. */
+  availableTransitions?: OrderStatus[];
+};
+
+export type ServicesPayload = Paginated & { services: Service[] };
+export type MyServicesPayload = { services: Service[]; count: number };
+export type ServicePayload = { service: Service; isOwner: boolean };
+export type OrdersPayload = {
+  orders: Order[];
+  role: "client" | "creative";
+  count: number;
+};
+export type OrderPayload = {
+  order: Order;
+  relation: "client" | "creative" | "admin";
+  availableTransitions: OrderStatus[];
+};
+
+/** Body accepted by POST/PUT /services. Price in MINOR units. */
+export type ServiceInput = {
+  title?: string;
+  description?: string;
+  category?: Category;
+  price?: number;
+  currency?: Currency;
+  deliveryTime?: number;
+  deliverables?: string[];
+  media?: string[];
+  isActive?: boolean;
+};
+
+export type MarketQuery = FeedQuery & {
+  sort?: "newest" | "price_asc" | "price_desc" | "popular";
+};
+
 export type AuthPayload = { user: User; token: string };
 export type ProfilePayload = {
   user: User;

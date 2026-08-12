@@ -13,6 +13,8 @@ const userRoutes = require("./routes/user.routes");
 const projectRoutes = require("./routes/project.routes");
 const feedRoutes = require("./routes/feed.routes");
 const commentRoutes = require("./routes/comment.routes");
+const serviceRoutes = require("./routes/service.routes");
+const orderRoutes = require("./routes/order.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const PORT = process.env.PORT || 5000;
@@ -31,6 +33,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/feed", feedRoutes);
 app.use("/api/comments", commentRoutes);
+app.use("/api/services", serviceRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
