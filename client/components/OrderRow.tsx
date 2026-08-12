@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { updateOrderStatus } from "@/services/orders";
+import { initializePayment } from "@/services/payments";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/format";
-import type { Order, OrderStatus } from "@/types/api";
+import type { Order, OrderStatus, PaymentStatus } from "@/types/api";
 
 /** Tone per status, so the dashboard reads at a glance. */
 const STATUS_TONE: Record<OrderStatus, string> = {
@@ -16,6 +17,21 @@ const STATUS_TONE: Record<OrderStatus, string> = {
   COMPLETED: "text-emerald-500",
   CANCELLED: "text-current/40 line-through",
   DISPUTED: "text-red-500",
+};
+
+/** Payment state is shown separately from order state — they are independent. */
+const PAYMENT_LABEL: Record<PaymentStatus, string> = {
+  PENDING: "Payment pending",
+  PAID: "Payment successful",
+  FAILED: "Payment failed",
+  REFUNDED: "Refunded",
+};
+
+const PAYMENT_TONE: Record<PaymentStatus, string> = {
+  PENDING: "text-current/50",
+  PAID: "text-emerald-500",
+  FAILED: "text-red-500",
+  REFUNDED: "text-current/50",
 };
 
 /** Verb shown on the button that performs each transition. */
@@ -40,6 +56,30 @@ export default function OrderRow({
   const [order, setOrder] = useState(initialOrder);
   const [busy, setBusy] = useState<OrderStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [paying, setPaying] = useState(false);
+
+  // Only the buyer pays, only once, and never on a cancelled order.
+  const canPay =
+    perspective === "client" &&
+    order.paymentStatus !== "PAID" &&
+    order.status !== "CANCELLED";
+
+  /**
+   * Redirect checkout: the server creates the transaction and returns
+   * Paystack's authorization URL. Nothing about the amount is decided here,
+   * and no Paystack script or key is loaded in the browser.
+   */
+  const startPayment = async () => {
+    setPaying(true);
+    setError(null);
+    try {
+      const { authorizationUrl } = await initializePayment(order._id);
+      window.location.href = authorizationUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not start payment");
+      setPaying(false);
+    }
+  };
 
   const counterparty =
     perspective === "client" ? order.creative : order.client;
@@ -105,6 +145,11 @@ export default function OrderRow({
           >
             {order.status.replace(/_/g, " ")}
           </p>
+          <p
+            className={`mt-1 font-mono text-[0.55rem] uppercase tracking-widest ${PAYMENT_TONE[order.paymentStatus]}`}
+          >
+            {PAYMENT_LABEL[order.paymentStatus]}
+          </p>
         </div>
       </div>
 
@@ -114,8 +159,22 @@ export default function OrderRow({
         </p>
       )}
 
-      {transitions.length > 0 && (
+      {(transitions.length > 0 || canPay) && (
         <div className="mt-4 flex flex-wrap gap-2">
+          {canPay && (
+            <button
+              type="button"
+              onClick={startPayment}
+              disabled={paying}
+              className="border border-current bg-current/5 px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest transition hover:bg-current/10 disabled:opacity-40"
+            >
+              {paying
+                ? "Redirecting…"
+                : order.paymentStatus === "FAILED"
+                  ? "Retry payment"
+                  : `Pay ${formatMoney(order.amount, order.currency)}`}
+            </button>
+          )}
           {transitions.map((status) => (
             <button
               key={status}

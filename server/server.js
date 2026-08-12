@@ -15,6 +15,7 @@ const feedRoutes = require("./routes/feed.routes");
 const commentRoutes = require("./routes/comment.routes");
 const serviceRoutes = require("./routes/service.routes");
 const orderRoutes = require("./routes/order.routes");
+const paymentRoutes = require("./routes/payment.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const PORT = process.env.PORT || 5000;
@@ -24,7 +25,24 @@ const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: CLIENT_URL, credentials: true }));
-app.use(express.json());
+/**
+ * The Paystack webhook signature is an HMAC of the exact bytes Paystack sent,
+ * so re-serialising the parsed object would not reproduce it. `verify` runs
+ * before parsing and hands us the untouched buffer.
+ *
+ * Scoped to the webhook path so every other route is completely unaffected —
+ * express.json() behaves exactly as it did before, and no other request pays
+ * the cost of retaining its body.
+ */
+const WEBHOOK_PATH = "/api/payments/webhook";
+
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      if (req.originalUrl === WEBHOOK_PATH) req.rawBody = buf;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/health", healthRoutes);
@@ -35,6 +53,7 @@ app.use("/api/feed", feedRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

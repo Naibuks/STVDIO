@@ -198,6 +198,22 @@ export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 
+/**
+ * A payment attempt. `metadata` is deliberately absent — the server marks it
+ * select:false because it holds the raw provider response.
+ */
+export type Payment = {
+  _id: string;
+  order: string;
+  amount: number;
+  currency: Currency;
+  provider: "PAYSTACK";
+  reference: string;
+  status: PaymentStatus;
+  paidAt?: string;
+  createdAt: string;
+};
+
 /** Public creator summary attached to a listing. */
 export type ServiceCreator = Pick<
   User,

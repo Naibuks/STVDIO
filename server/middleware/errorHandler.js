@@ -72,8 +72,13 @@ const errorHandler = (err, req, res, next) => {
     ...(errors && { errors }),
     // Present only on validation failures that identified specific fields.
     ...(fields && { fields }),
-    // Stack traces can leak file paths and logic — development only.
-    ...(!isProduction && status >= 500 && { stack: err.stack }),
+    // Stack traces can leak file paths and logic — development only, and only
+    // for genuine crashes. A deliberate 5xx (an unreachable payment provider,
+    // a missing key) is an expected outcome with a useful message, so a stack
+    // there is noise rather than a diagnostic.
+    ...(!isProduction &&
+      status >= 500 &&
+      !err.isOperational && { stack: err.stack }),
   });
 };
 
