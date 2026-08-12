@@ -16,6 +16,7 @@ const commentRoutes = require("./routes/comment.routes");
 const serviceRoutes = require("./routes/service.routes");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
+const collaborationRoutes = require("./routes/collaboration.routes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const emailService = require("./services/email/email.service");
 
@@ -55,6 +56,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/collaborations", collaborationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

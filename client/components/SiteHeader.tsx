@@ -25,6 +25,9 @@ export default function SiteHeader() {
         <Link href="/market" className="hover:opacity-60">
           Market
         </Link>
+        <Link href="/collaborations" className="hover:opacity-60">
+          Briefs
+        </Link>
         {loading ? null : user ? (
           <>
             <Link href="/orders" className="hover:opacity-60">

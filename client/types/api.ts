@@ -307,6 +307,116 @@ export type MarketQuery = FeedQuery & {
   sort?: "newest" | "price_asc" | "price_desc" | "popular";
 };
 
+// --- Collaboration (Phase 9) ----------------------------------------------
+
+export const COLLABORATION_STATUSES = [
+  "OPEN",
+  "CLOSED",
+  "FILLED",
+  "CANCELLED",
+] as const;
+export type CollaborationStatus = (typeof COLLABORATION_STATUSES)[number];
+
+export type ApplicationStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "WITHDRAWN";
+
+export type CollaborationCreator = Pick<
+  User,
+  "_id" | "name" | "username" | "role" | "isVerified"
+> & { avatar?: Media };
+
+/** Budget bounds are in the currency's MINOR unit — see lib/money.ts. */
+export type Budget = {
+  min?: number;
+  max?: number;
+  currency?: Currency;
+};
+
+export type Collaboration = {
+  _id: string;
+  creator: CollaborationCreator;
+  title: string;
+  description: string;
+  category: Category;
+  location?: string;
+  isRemote: boolean;
+  budget?: Budget;
+  deadline?: string;
+  status: CollaborationStatus;
+  applicationsCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Applicant = Pick<
+  User,
+  "_id" | "name" | "username" | "role" | "isVerified"
+> & { avatar?: Media; bio?: string; location?: string; categories?: Category[] };
+
+export type CollaborationApplication = {
+  _id: string;
+  collaboration: string | Pick<
+    Collaboration,
+    "_id" | "title" | "category" | "location" | "status" | "deadline" | "budget"
+  > & { creator?: CollaborationCreator };
+  applicant: Applicant;
+  message: string;
+  status: ApplicationStatus;
+  respondedAt?: string;
+  createdAt: string;
+};
+
+/** The viewer's own application, returned on the detail page. Never others'. */
+export type MyApplication = {
+  _id: string;
+  status: ApplicationStatus;
+  message: string;
+  createdAt: string;
+  respondedAt?: string;
+};
+
+export type CollaborationsPayload = Paginated & {
+  collaborations: Collaboration[];
+};
+export type MyCollaborationsPayload = {
+  collaborations: Collaboration[];
+  count: number;
+};
+export type MyApplicationsPayload = {
+  applications: CollaborationApplication[];
+  count: number;
+};
+export type CollaborationPayload = {
+  collaboration: Collaboration;
+  isOwner: boolean;
+  myApplication: MyApplication | null;
+};
+export type ApplicationsPayload = {
+  collaboration: Pick<Collaboration, "_id" | "title" | "status">;
+  applications: CollaborationApplication[];
+  count: number;
+};
+
+/** Body accepted by POST/PATCH /collaborations. Budget in MINOR units. */
+export type CollaborationInput = {
+  title?: string;
+  description?: string;
+  category?: Category;
+  location?: string;
+  isRemote?: boolean;
+  budget?: Budget;
+  deadline?: string | null;
+  status?: CollaborationStatus;
+};
+
+export type CollaborationQuery = FeedQuery & {
+  status?: CollaborationStatus;
+  location?: string;
+};
+
 export type AuthPayload = { user: User; token: string };
 export type ProfilePayload = {
   user: User;

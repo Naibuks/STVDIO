@@ -572,6 +572,207 @@ const validateOrderStatus = (body = {}) => {
   return { errors, fields, value: { status } };
 };
 
+const {
+  COLLABORATION_STATUS,
+  APPLICATION_STATUS,
+} = require("./constants");
+
+/**
+ * Normalise the budget.
+ *
+ * The schema stores `{ min, max, currency }` in the currency's minor unit. A
+ * plain number is accepted as a convenience and read as a fixed budget, so
+ * `budget: 250000` and `budget: { min: 250000, max: 250000 }` mean the same
+ * thing. Returns `{ value, error }`.
+ */
+const parseBudget = (budget) => {
+  if (budget === null || budget === "") return { value: undefined };
+
+  if (typeof budget === "number" || typeof budget === "string") {
+    const fixed = Number(budget);
+    if (!Number.isInteger(fixed) || fixed < 0) {
+      return { error: "Budget must be a whole number in the currency's minor unit" };
+    }
+    return { value: { min: fixed, max: fixed } };
+  }
+
+  if (typeof budget !== "object" || Array.isArray(budget)) {
+    return { error: "Budget must be a number or { min, max, currency }" };
+  }
+
+  const value = {};
+  for (const bound of ["min", "max"]) {
+    if (budget[bound] === undefined || budget[bound] === null || budget[bound] === "")
+      continue;
+    const amount = Number(budget[bound]);
+    if (!Number.isInteger(amount) || amount < 0) {
+      return {
+        error: `Budget ${bound} must be a whole number in the currency's minor unit`,
+      };
+    }
+    value[bound] = amount;
+  }
+
+  if (budget.currency) {
+    const currency = String(budget.currency).trim().toUpperCase();
+    if (!CURRENCIES.includes(currency)) {
+      return { error: `Invalid currency. Allowed: ${CURRENCIES.join(", ")}` };
+    }
+    value.currency = currency;
+  }
+
+  if (value.min != null && value.max != null && value.max < value.min) {
+    return { error: "Budget max cannot be less than budget min" };
+  }
+
+  return { value: Object.keys(value).length ? value : undefined };
+};
+
+/**
+ * Validate a collaboration opportunity.
+ *
+ * `creator`, `applicationsCount` and the timestamps are absent from the
+ * whitelist — ownership comes from the token and the counter is the server's.
+ */
+const validateCollaboration = (body = {}, { partial = false } = {}) => {
+  const errors = [];
+  const fields = {};
+  const value = {};
+  const fail = (field, message) => {
+    if (!fields[field]) fields[field] = message;
+    errors.push(message);
+  };
+  const has = (key) => (partial ? key in body : true);
+
+  if (has("title")) {
+    if (!isString(body.title)) fail("title", "Title is required");
+    else if (body.title.trim().length > 120)
+      fail("title", "Title cannot exceed 120 characters");
+    else value.title = body.title.trim();
+  }
+
+  if (has("description")) {
+    if (!isString(body.description))
+      fail("description", "Description is required");
+    else if (body.description.trim().length > 5000)
+      fail("description", "Description cannot exceed 5000 characters");
+    else value.description = body.description.trim();
+  }
+
+  if (has("category")) {
+    const category = String(body.category ?? "").trim().toUpperCase();
+    if (!category) fail("category", "Category is required");
+    else if (!CATEGORIES.includes(category))
+      fail("category", `Invalid category: ${category}. Allowed: ${CATEGORIES.join(", ")}`);
+    else value.category = category;
+  }
+
+  if ("location" in body) {
+    const location = body.location == null ? "" : String(body.location).trim();
+    if (location.length > 120)
+      fail("location", "Location cannot exceed 120 characters");
+    else value.location = location;
+  }
+
+  if ("isRemote" in body) {
+    if (typeof body.isRemote !== "boolean")
+      fail("isRemote", "isRemote must be true or false");
+    else value.isRemote = body.isRemote;
+  }
+
+  if ("budget" in body) {
+    const { value: budget, error } = parseBudget(body.budget);
+    if (error) fail("budget", error);
+    else if (budget) value.budget = budget;
+  }
+
+  if ("deadline" in body) {
+    if (body.deadline === null || body.deadline === "") {
+      value.deadline = undefined;
+    } else {
+      const deadline = new Date(body.deadline);
+      if (Number.isNaN(deadline.getTime()))
+        fail("deadline", "Deadline must be a valid date");
+      else value.deadline = deadline;
+    }
+  }
+
+  // Only meaningful on update — this is how an opportunity is closed.
+  if ("status" in body) {
+    const status = String(body.status).trim().toUpperCase();
+    if (!values(COLLABORATION_STATUS).includes(status))
+      fail(
+        "status",
+        `Invalid status. Allowed: ${values(COLLABORATION_STATUS).join(", ")}`,
+      );
+    else value.status = status;
+  }
+
+  if (partial && !errors.length && Object.keys(value).length === 0) {
+    fail("form", "No updatable fields were provided");
+  }
+
+  return { errors, fields, value };
+};
+
+/** Validate an application. The applicant comes from the token, never the body. */
+const validateApplication = (body = {}) => {
+  const errors = [];
+  const fields = {};
+  const value = {};
+
+  if (!isString(body.message)) {
+    fail_(fields, errors, "message", "An application message is required");
+  } else if (body.message.trim().length > 2000) {
+    fail_(fields, errors, "message", "Message cannot exceed 2000 characters");
+  } else {
+    value.message = body.message.trim();
+  }
+
+  if ("portfolioProjects" in body) {
+    if (!Array.isArray(body.portfolioProjects)) {
+      fail_(fields, errors, "portfolioProjects", "portfolioProjects must be an array");
+    } else if (body.portfolioProjects.length > 10) {
+      fail_(fields, errors, "portfolioProjects", "You can attach at most 10 projects");
+    } else {
+      value.portfolioProjects = body.portfolioProjects;
+    }
+  }
+
+  return { errors, fields, value };
+};
+
+/** Shared helper for the two validators above. */
+function fail_(fields, errors, field, message) {
+  if (!fields[field]) fields[field] = message;
+  errors.push(message);
+}
+
+/**
+ * Validate a response to an application.
+ * Only the two decisions a creator can make are accepted here; the service
+ * enforces which transitions are legal from the current state.
+ */
+const validateApplicationStatus = (body = {}) => {
+  const errors = [];
+  const fields = {};
+  const status = String(body.status ?? "").trim().toUpperCase();
+  const allowed = [APPLICATION_STATUS.ACCEPTED, APPLICATION_STATUS.REJECTED];
+
+  if (!status) {
+    fail_(fields, errors, "status", "A status is required");
+  } else if (!allowed.includes(status)) {
+    fail_(
+      fields,
+      errors,
+      "status",
+      `Invalid status. Allowed: ${allowed.join(", ")}`,
+    );
+  }
+
+  return { errors, fields, value: { status } };
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -582,6 +783,9 @@ module.exports = {
   validateService,
   validateOrder,
   validateOrderStatus,
+  validateCollaboration,
+  validateApplication,
+  validateApplicationStatus,
   SOCIAL_PLATFORMS,
   MAX_PAGE_SIZE,
   DEFAULT_PAGE_SIZE,
