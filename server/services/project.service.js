@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Project, User } = require("../models");
+const { Project, User, Like, Comment } = require("../models");
 const ApiError = require("../utils/ApiError");
 const { PROJECT_VISIBILITY, USER_ROLES } = require("../utils/constants");
 
@@ -93,13 +93,28 @@ const remove = async (projectId, actor) => {
 
   await project.deleteOne();
 
+  /**
+   * Likes and comments reference the project and have no meaning without it,
+   * so they are removed with it. Without this they became rows no endpoint
+   * could ever reach again — and they would still be counted by anything that
+   * aggregates over the collections, such as the admin statistics.
+   */
+  const [likes, comments] = await Promise.all([
+    Like.deleteMany({ project: projectId }),
+    Comment.deleteMany({ project: projectId }),
+  ]);
+
   // Keep the profile counter honest, and never let it go negative.
   await User.updateOne(
     { _id: ownerId, projectsCount: { $gt: 0 } },
     { $inc: { projectsCount: -1 } },
   );
 
-  return { id: projectId };
+  return {
+    id: projectId,
+    likesRemoved: likes.deletedCount,
+    commentsRemoved: comments.deletedCount,
+  };
 };
 
 module.exports = { create, listOwn, getById, update, remove };

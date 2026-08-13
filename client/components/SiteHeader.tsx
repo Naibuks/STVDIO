@@ -41,6 +41,12 @@ export default function SiteHeader() {
             <Link href="/profile" className="hover:opacity-60">
               {user.username}
             </Link>
+            {/* Convenience only — /api/admin enforces the role server-side. */}
+            {user.role === "ADMIN" && (
+              <Link href="/admin" className="hover:opacity-60">
+                Admin
+              </Link>
+            )}
             <button
               type="button"
               onClick={signOut}

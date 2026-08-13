@@ -773,6 +773,111 @@ const validateApplicationStatus = (body = {}) => {
   return { errors, fields, value: { status } };
 };
 
+// ORDER_STATUS, CATEGORIES, COLLABORATION_STATUS and values() are already
+// imported higher up in this file; only the two new names are pulled in here.
+const { USER_ROLES, PAYMENT_STATUS } = require("./constants");
+
+/**
+ * Escape every regex metacharacter in a user-supplied search term.
+ *
+ * Admin search has to match partial emails, which the $text index does not
+ * cover, so it falls back to a regex. Passing raw input to `new RegExp` would
+ * let a query change its own meaning — and a pattern like `(a+)+$` would hang
+ * the server. Callers must run every search term through this.
+ */
+const escapeRegex = (value) =>
+  String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Validate an admin list query.
+ *
+ * Every filter is checked against a fixed set of allowed values and rebuilt
+ * from scratch, so nothing a client sends can reach MongoDB as an operator —
+ * `?role[$ne]=ADMIN` arrives as an object, fails the enum check, and is
+ * dropped rather than becoming part of the query.
+ */
+const validateAdminQuery = (query = {}, { allow = [] } = {}) => {
+  const errors = [];
+  const value = {};
+
+  const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  const limit = Math.min(
+    MAX_PAGE_SIZE,
+    Math.max(1, Number.parseInt(query.limit, 10) || 20),
+  );
+  value.page = page;
+  value.limit = limit;
+
+  // Only ever a trimmed, length-capped string; escaped at the point of use.
+  value.search =
+    typeof query.search === "string" ? query.search.trim().slice(0, 100) : "";
+
+  if (allow.includes("role") && query.role !== undefined) {
+    const role = String(query.role).trim().toUpperCase();
+    if (!values(USER_ROLES).includes(role)) {
+      errors.push(`Invalid role. Allowed: ${values(USER_ROLES).join(", ")}`);
+    } else {
+      value.role = role;
+    }
+  }
+
+  if (allow.includes("isActive") && query.isActive !== undefined) {
+    const raw = String(query.isActive).trim().toLowerCase();
+    if (raw !== "true" && raw !== "false") {
+      errors.push("isActive must be true or false");
+    } else {
+      value.isActive = raw === "true";
+    }
+  }
+
+  if (allow.includes("category") && query.category !== undefined) {
+    const category = String(query.category).trim().toUpperCase();
+    if (!CATEGORIES.includes(category)) {
+      errors.push(`Invalid category. Allowed: ${CATEGORIES.join(", ")}`);
+    } else {
+      value.category = category;
+    }
+  }
+
+  if (allow.includes("status") && query.status !== undefined) {
+    const status = String(query.status).trim().toUpperCase();
+    const allowed = allow.includes("collaborationStatus")
+      ? values(COLLABORATION_STATUS)
+      : values(ORDER_STATUS);
+    if (!allowed.includes(status)) {
+      errors.push(`Invalid status. Allowed: ${allowed.join(", ")}`);
+    } else {
+      value.status = status;
+    }
+  }
+
+  if (allow.includes("paymentStatus") && query.paymentStatus !== undefined) {
+    const paymentStatus = String(query.paymentStatus).trim().toUpperCase();
+    if (!values(PAYMENT_STATUS).includes(paymentStatus)) {
+      errors.push(
+        `Invalid paymentStatus. Allowed: ${values(PAYMENT_STATUS).join(", ")}`,
+      );
+    } else {
+      value.paymentStatus = paymentStatus;
+    }
+  }
+
+  return { errors, value };
+};
+
+/**
+ * Validate an account status change.
+ * Deliberately narrow: `isActive` is the only field this endpoint accepts, so
+ * a role or verification flag cannot ride along in the same request.
+ */
+const validateUserStatus = (body = {}) => {
+  const errors = [];
+  if (typeof body.isActive !== "boolean") {
+    errors.push("isActive must be true or false");
+  }
+  return { errors, value: { isActive: body.isActive } };
+};
+
 module.exports = {
   validateRegister,
   validateLogin,
@@ -786,6 +891,9 @@ module.exports = {
   validateCollaboration,
   validateApplication,
   validateApplicationStatus,
+  validateAdminQuery,
+  validateUserStatus,
+  escapeRegex,
   SOCIAL_PLATFORMS,
   MAX_PAGE_SIZE,
   DEFAULT_PAGE_SIZE,

@@ -91,6 +91,11 @@ export type User = {
   website?: string;
   socialLinks?: SocialLinks;
   isVerified: boolean;
+  /**
+   * Present on your own profile (/users/me) and throughout the admin API.
+   * Absent from public profiles — a deactivated account 404s there instead.
+   */
+  isActive?: boolean;
   followersCount: number;
   followingCount: number;
   projectsCount: number;
@@ -264,8 +269,9 @@ export type Order = {
   amount: number;
   currency: Currency;
   status: OrderStatus;
-  /** Populated in Phase 7; always PENDING for now. */
   paymentStatus: PaymentStatus;
+  /** Set once a Paystack transaction is initialised for this order. */
+  paystackReference?: string;
   requirements?: string;
   dueAt?: string;
   completedAt?: string;
@@ -472,6 +478,94 @@ export type ReadUpdateEvent = {
 };
 
 export type PresenceEvent = { userId: string; username: string };
+
+// --- Admin (Phase 11) -----------------------------------------------------
+
+/** Shared pagination envelope used by every admin list. */
+export type AdminPaginated = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+};
+
+export type AdminQuery = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  role?: UserRole;
+  isActive?: boolean;
+  category?: Category;
+  status?: string;
+  paymentStatus?: PaymentStatus;
+};
+
+export type AdminStats = {
+  users: {
+    total: number;
+    creatives: number;
+    brands: number;
+    admins: number;
+    active: number;
+    deactivated: number;
+    verified: number;
+  };
+  content: {
+    projects: number;
+    likes: number;
+    comments: number;
+    reviews: number;
+  };
+  marketplace: {
+    services: number;
+    activeServices: number;
+    inactiveServices: number;
+    orders: number;
+    ordersByStatus: Record<string, number>;
+    ordersByPaymentStatus: Record<string, number>;
+  };
+  payments: {
+    total: number;
+    /** Kept per currency — summing NGN and USD would be meaningless. */
+    succeededByCurrency: { currency: Currency; amount: number; count: number }[];
+  };
+  collaborations: { total: number; open: number; applications: number };
+  /** Aggregate only — no admin route exposes private conversations. */
+  messaging: { conversations: number; messages: number };
+  recent: {
+    users: Pick<User, "_id" | "name" | "username" | "role" | "createdAt">[];
+    orders: Order[];
+  };
+};
+
+export type AdminUsersPayload = AdminPaginated & { users: User[] };
+
+export type AdminUserDetailPayload = {
+  user: User;
+  activity: {
+    projectCount: number;
+    serviceCount: number;
+    ordersPlaced: number;
+    ordersReceived: number;
+    collaborationsPosted: number;
+    applicationsSent: number;
+    followers: number;
+    following: number;
+  };
+};
+
+export type AdminProjectsPayload = AdminPaginated & { projects: Project[] };
+export type AdminServicesPayload = AdminPaginated & { services: Service[] };
+export type AdminOrdersPayload = AdminPaginated & { orders: Order[] };
+export type AdminOrderDetailPayload = { order: Order; payments: Payment[] };
+export type AdminPaymentsPayload = AdminPaginated & {
+  payments: (Payment & { user?: ChatParticipant; order?: Partial<Order> })[];
+  summary: Record<string, number>;
+};
+export type AdminCollaborationsPayload = AdminPaginated & {
+  collaborations: Collaboration[];
+};
 
 export type AuthPayload = { user: User; token: string };
 export type ProfilePayload = {
