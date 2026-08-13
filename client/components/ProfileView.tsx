@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import ProjectGrid from "./ProjectGrid";
 import FollowButton from "./FollowButton";
+import MessageButton from "./MessageButton";
 import SafeImage from "./SafeImage";
 import { formatCategory, formatDate } from "@/lib/format";
 import type { Project, User } from "@/types/api";
@@ -134,12 +135,15 @@ export default function ProfileView({
                 </Link>
               </>
             ) : (
-              <FollowButton
-                username={user.username}
-                initialFollowing={isFollowing}
-                initialFollowers={user.followersCount}
-                onCountChange={setFollowers}
-              />
+              <>
+                <MessageButton username={user.username} />
+                <FollowButton
+                  username={user.username}
+                  initialFollowing={isFollowing}
+                  initialFollowers={user.followersCount}
+                  onCountChange={setFollowers}
+                />
+              </>
             )}
           </div>
         </div>

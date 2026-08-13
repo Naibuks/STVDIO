@@ -417,6 +417,62 @@ export type CollaborationQuery = FeedQuery & {
   location?: string;
 };
 
+// --- Messaging (Phase 10) -------------------------------------------------
+
+export type ChatParticipant = Pick<
+  User,
+  "_id" | "name" | "username" | "role" | "isVerified"
+> & { avatar?: Media };
+
+export type ChatMessage = {
+  _id: string;
+  conversation: string;
+  sender: ChatParticipant;
+  content: string;
+  read: boolean;
+  readAt?: string;
+  createdAt: string;
+};
+
+/**
+ * A conversation as the viewer sees it: the other person, and only the
+ * viewer's own unread count — never the other side's.
+ */
+export type Conversation = {
+  _id: string;
+  participant: ChatParticipant | null;
+  lastMessage: Pick<ChatMessage, "_id" | "content" | "sender" | "createdAt" | "read"> | null;
+  lastMessageAt: string;
+  unreadCount: number;
+  isParticipantOnline: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ConversationsPayload = {
+  conversations: Conversation[];
+  count: number;
+};
+export type ConversationPayload = { conversation: Conversation };
+export type MessagesPayload = Paginated & { messages: ChatMessage[] };
+export type UnreadPayload = { unread: number };
+
+/** Payload of the `message:new` socket event. */
+export type NewMessageEvent = {
+  conversationId: string;
+  message: ChatMessage;
+};
+
+/** Payload of `message:read:update`. */
+export type ReadUpdateEvent = {
+  conversationId: string;
+  readBy: string;
+  readAt: string;
+  count: number;
+};
+
+export type PresenceEvent = { userId: string; username: string };
+
 export type AuthPayload = { user: User; token: string };
 export type ProfilePayload = {
   user: User;

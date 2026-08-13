@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "./AuthProvider";
+import MessagesLink from "./MessagesLink";
 
 export default function SiteHeader() {
   const { user, loading, signOut } = useAuth();
@@ -30,6 +31,7 @@ export default function SiteHeader() {
         </Link>
         {loading ? null : user ? (
           <>
+            <MessagesLink />
             <Link href="/orders" className="hover:opacity-60">
               Orders
             </Link>

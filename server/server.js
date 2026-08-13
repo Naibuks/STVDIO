@@ -1,5 +1,6 @@
 require("dotenv").config({ quiet: true });
 
+const http = require("http");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -17,6 +18,8 @@ const serviceRoutes = require("./routes/service.routes");
 const orderRoutes = require("./routes/order.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const collaborationRoutes = require("./routes/collaboration.routes");
+const conversationRoutes = require("./routes/conversation.routes");
+const { initSocket } = require("./services/socket.service");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const emailService = require("./services/email/email.service");
 
@@ -57,6 +60,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/collaborations", collaborationRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -85,9 +89,20 @@ const start = async () => {
     console.warn("MONGODB_URI is not set — starting API without a database.");
   }
 
-  const server = app.listen(PORT, () => {
+  /**
+   * Socket.io needs an http.Server to attach to, which app.listen() creates
+   * internally and does not expose in a way we can hand over. Creating it
+   * explicitly changes nothing about how Express handles requests — the same
+   * app, the same port — it just gives the websocket transport something to
+   * upgrade on.
+   */
+  const server = http.createServer(app);
+  initSocket(server);
+
+  server.listen(PORT, () => {
     console.log(`STVDIO° API running on http://localhost:${PORT}`);
     console.log(`Health check: http://localhost:${PORT}/api/health`);
+    console.log(`Realtime: Socket.io listening on the same port`);
     // Whether email is on, never what the key is. Silent skipping would be
     // very hard to diagnose from a missing inbox alone.
     console.log(

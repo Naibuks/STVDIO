@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
+import SocketProvider from "@/components/SocketProvider";
 import SiteHeader from "@/components/SiteHeader";
 
 const geistSans = Geist({
@@ -28,8 +29,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <SiteHeader />
-          <div className="flex flex-1 flex-col">{children}</div>
+          {/* One socket for the whole app — mounted here so navigation
+              reuses the connection instead of opening a new one per route. */}
+          <SocketProvider>
+            <SiteHeader />
+            <div className="flex flex-1 flex-col">{children}</div>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>
