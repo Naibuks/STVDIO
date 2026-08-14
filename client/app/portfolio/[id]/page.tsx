@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import LikeButton from "@/components/LikeButton";
 import CommentSection from "@/components/CommentSection";
-import SafeImage from "@/components/SafeImage";
+import SafeMedia from "@/components/SafeMedia";
 import { deleteProject, getProject } from "@/services/projects";
 import { formatCategory, formatDate } from "@/lib/format";
 import type { Project } from "@/types/api";
@@ -129,14 +129,16 @@ export default function ProjectDetailPage({
 
         <div className="mt-10 space-y-6">
           {project.media.map((item, index) => (
-            <SafeImage
+            <SafeMedia
               key={`${item.url}-${index}`}
-              src={item.url}
-              alt={`${project.title} — image ${index + 1}`}
+              media={item}
+              alt={`${project.title} — item ${index + 1}`}
               className="w-full bg-current/5 object-cover"
+              // Full size: videos get controls rather than silent autoplay.
+              variant="full"
               fallback={
                 <div className="flex aspect-[4/3] w-full items-center justify-center bg-current/5 font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
-                  Image unavailable
+                  Media unavailable
                 </div>
               }
             />

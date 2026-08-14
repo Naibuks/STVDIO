@@ -86,7 +86,19 @@ const updateOwnProfile = async (userId, patch) => {
     if (taken) throw ApiError.conflict("That username is already taken");
   }
 
-  Object.assign(user, patch);
+  /**
+   * `avatar: null` means "remove it". Assigning null (or undefined) to a
+   * subdocument path does not reliably clear it, so the path is unset
+   * explicitly and removed from the patch before the rest is applied.
+   */
+  const { avatar, ...rest } = patch;
+  if ("avatar" in patch && avatar === null) {
+    user.set("avatar", undefined);
+  } else if (avatar) {
+    user.set("avatar", avatar);
+  }
+
+  Object.assign(user, rest);
   await user.save();
 
   return user;

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import SafeImage from "./SafeImage";
+import MediaUploader from "./MediaUploader";
 import { formatCategory } from "@/lib/format";
 import {
   CATEGORIES,
   VISIBILITIES,
   type Category,
+  type Media,
   type Project,
   type ProjectInput,
   type Visibility,
@@ -41,9 +42,10 @@ export default function ProjectForm({
   const [category, setCategory] = useState<Category>(
     initial?.category ?? "PHOTOGRAPHY",
   );
-  const [mediaText, setMediaText] = useState(
-    (initial?.media ?? []).map((m) => m.url).join("\n"),
-  );
+  // Existing media is kept as-is when editing, so a project uploaded before
+  // this change keeps its items and can still be reordered by removal.
+  const [media, setMedia] = useState<Media[]>(initial?.media ?? []);
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [tags, setTags] = useState((initial?.tags ?? []).join(", "));
   const [tools, setTools] = useState((initial?.tools ?? []).join(", "));
   const [projectUrl, setProjectUrl] = useState(initial?.projectUrl ?? "");
@@ -63,15 +65,13 @@ export default function ProjectForm({
       title,
       description,
       category,
-      media: splitList(mediaText, /\n+/),
+      media,
       tags: splitList(tags, /,/),
       tools: splitList(tools, /,/),
       projectUrl,
       visibility,
     });
   };
-
-  const previews = splitList(mediaText, /\n+/);
 
   return (
     <form onSubmit={handleSubmit} className="mt-10 space-y-7">
@@ -118,36 +118,11 @@ export default function ProjectForm({
         </div>
       </fieldset>
 
-      <label className="block">
-        <span className={labelClass}>
-          Image URLs — one per line, first is the cover
-        </span>
-        <textarea
-          value={mediaText}
-          onChange={(e) => setMediaText(e.target.value)}
-          rows={4}
-          placeholder={"https://…/one.jpg\nhttps://…/two.jpg"}
-          className={`${fieldClass} resize-y font-mono text-xs`}
-        />
-      </label>
-
-      {previews.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {previews.map((url, index) => (
-            <SafeImage
-              key={`${url}-${index}`}
-              src={url}
-              alt={`Preview ${index + 1}`}
-              className="h-20 w-20 border border-current/15 object-cover"
-              fallback={
-                <div className="flex h-20 w-20 items-center justify-center border border-dashed border-current/25 text-center font-mono text-[0.5rem] uppercase leading-tight tracking-widest text-current/40">
-                  Can&rsquo;t load
-                </div>
-              }
-            />
-          ))}
-        </div>
-      )}
+      <MediaUploader
+        value={media}
+        onChange={setMedia}
+        onBusyChange={setUploadBusy}
+      />
 
       <label className="block">
         <span className={labelClass}>Tools — comma separated</span>
@@ -211,10 +186,11 @@ export default function ProjectForm({
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          disabled={saving}
+          // Publishing mid-upload would drop the files still in flight.
+          disabled={saving || uploadBusy}
           className="border border-current px-4 py-3 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
         >
-          {saving ? "Saving…" : submitLabel}
+          {saving ? "Saving…" : uploadBusy ? "Uploading…" : submitLabel}
         </button>
         <button
           type="button"

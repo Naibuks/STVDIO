@@ -20,6 +20,7 @@ const paymentRoutes = require("./routes/payment.routes");
 const collaborationRoutes = require("./routes/collaboration.routes");
 const conversationRoutes = require("./routes/conversation.routes");
 const adminRoutes = require("./routes/admin.routes");
+const uploadRoutes = require("./routes/upload.routes");
 const { initSocket } = require("./services/socket.service");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 const emailService = require("./services/email/email.service");
@@ -63,6 +64,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/collaborations", collaborationRoutes);
 app.use("/api/conversations", conversationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/uploads", uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

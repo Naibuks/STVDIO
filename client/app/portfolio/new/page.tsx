@@ -46,7 +46,7 @@ export default function NewProjectPage() {
     <main className="mx-auto w-full max-w-2xl px-6 py-14">
       <h1 className="text-2xl font-medium tracking-tight">New work</h1>
       <p className="mt-2 font-mono text-[0.65rem] uppercase tracking-widest text-current/50">
-        Images are linked by URL in this phase
+        Upload photos and videos from your device
       </p>
       <ProjectForm
         submitLabel="Publish"

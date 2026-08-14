@@ -1,6 +1,6 @@
 import Link from "next/link";
 import LikeButton from "./LikeButton";
-import SafeImage from "./SafeImage";
+import SafeMedia from "./SafeMedia";
 import type { Project } from "@/types/api";
 import { formatCategory } from "@/lib/format";
 
@@ -21,8 +21,8 @@ export default function ProjectCard({
     <article className="group">
       <Link href={`/portfolio/${project._id}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden bg-current/5">
-          <SafeImage
-            src={cover?.url}
+          <SafeMedia
+            media={cover}
             alt={project.title}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
             fallback={

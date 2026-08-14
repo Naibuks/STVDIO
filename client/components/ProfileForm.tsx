@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import AvatarUploader from "./AvatarUploader";
 import { updateMe } from "@/services/users";
 import { ApiRequestError } from "@/services/api";
 import { formatCategory } from "@/lib/format";
-import { CATEGORIES, type Category, type SocialLinks, type User } from "@/types/api";
+import {
+  CATEGORIES,
+  type Category,
+  type Media,
+  type SocialLinks,
+  type User,
+} from "@/types/api";
 
 const SOCIAL_PLATFORMS: (keyof SocialLinks)[] = [
   "instagram",
@@ -41,9 +48,9 @@ export default function ProfileForm({
     bio: user.bio ?? "",
     location: user.location ?? "",
     website: user.website ?? "",
-    avatarUrl: user.avatar?.url ?? "",
     skills: (user.skills ?? []).join(", "),
   });
+  const [avatar, setAvatar] = useState<Media | null>(user.avatar ?? null);
   const [categories, setCategories] = useState<Category[]>(user.categories ?? []);
   const [socials, setSocials] = useState<SocialLinks>(user.socialLinks ?? {});
   const [errors, setErrors] = useState<string[]>([]);
@@ -72,7 +79,8 @@ export default function ProfileForm({
           .map((s) => s.trim())
           .filter(Boolean),
         categories,
-        avatar: form.avatarUrl ? { url: form.avatarUrl } : null,
+        // null clears the stored avatar; see user.service.updateOwnProfile.
+        avatar,
         socialLinks: socials,
       });
       onSaved(updated);
@@ -127,15 +135,7 @@ export default function ProfileForm({
         />
       </label>
 
-      <label className="block">
-        <span className={labelClass}>Avatar image URL</span>
-        <input
-          value={form.avatarUrl}
-          onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })}
-          placeholder="https://…"
-          className={fieldClass}
-        />
-      </label>
+      <AvatarUploader value={avatar} onChange={setAvatar} name={form.name} />
 
       <label className="block">
         <span className={labelClass}>Website</span>

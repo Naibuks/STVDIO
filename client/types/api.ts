@@ -592,7 +592,8 @@ export type ProfileUpdate = {
   website?: string;
   skills?: string[];
   categories?: Category[];
-  avatar?: { url: string } | null;
+  /** A full media object from the upload endpoint, or null to clear it. */
+  avatar?: Media | null;
   socialLinks?: SocialLinks;
 };
 
@@ -601,7 +602,12 @@ export type ProjectInput = {
   title?: string;
   description?: string;
   category?: Category;
-  media?: string[];
+  /**
+   * Uploaded items are sent as full media objects so publicId/resourceType and
+   * dimensions survive. Plain URL strings remain valid — the server accepts
+   * either, which keeps projects created before uploads existed editable.
+   */
+  media?: (string | Media)[];
   tags?: string[];
   tools?: string[];
   projectUrl?: string;

@@ -206,11 +206,24 @@ const validateProfileUpdate = (body = {}) => {
   if ("avatar" in body) {
     const avatar = body.avatar;
     if (avatar === null) {
-      value.avatar = undefined;
+      // `null` clears the avatar. Mongoose ignores a plain `undefined`
+      // assignment, so the service unsets the path explicitly.
+      value.avatar = null;
     } else if (!avatar || !isHttpUrl(avatar.url)) {
       errors.push("Avatar must be an object with a valid http(s) url");
     } else {
-      value.avatar = { url: avatar.url.trim(), publicId: avatar.publicId };
+      // Carries the whole media object through, so an uploaded avatar keeps
+      // its Cloudinary publicId and dimensions rather than degrading to a
+      // bare URL. Still accepts a plain { url } for backward compatibility.
+      value.avatar = {
+        url: avatar.url.trim(),
+        ...(avatar.publicId && { publicId: String(avatar.publicId) }),
+        ...(avatar.resourceType && {
+          resourceType: String(avatar.resourceType),
+        }),
+        ...(Number.isFinite(avatar.width) && { width: avatar.width }),
+        ...(Number.isFinite(avatar.height) && { height: avatar.height }),
+      };
     }
   }
 
