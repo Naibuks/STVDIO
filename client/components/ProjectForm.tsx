@@ -14,9 +14,9 @@ import {
 } from "@/types/api";
 
 const fieldClass =
-  "mt-2 w-full border-b border-current/30 bg-transparent py-2 outline-none focus:border-current";
+  "mt-2 w-full border-b border-[#2a2a2a] bg-transparent py-2 text-[#f5f1ea] placeholder:text-[#f5f1ea]/35 outline-none transition focus:border-[#d66a38]";
 const labelClass =
-  "font-mono text-[0.65rem] uppercase tracking-widest text-current/50";
+  "font-mono text-[0.62rem] uppercase tracking-[0.24em] text-[#f5f1ea]/55";
 
 /**
  * Shared create/edit form. One component so the two pages cannot drift apart
@@ -74,7 +74,7 @@ export default function ProjectForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-10 space-y-7">
+    <form onSubmit={handleSubmit} className="mt-10 space-y-8 rounded-none border border-[#1d1d1d] bg-[#0d0d0d] p-5 sm:p-8">
       <label className="block">
         <span className={labelClass}>Title</span>
         <input
@@ -82,6 +82,7 @@ export default function ProjectForm({
           onChange={(e) => setTitle(e.target.value)}
           required
           maxLength={120}
+          placeholder="Untitled project"
           className={fieldClass}
         />
       </label>
@@ -93,6 +94,7 @@ export default function ProjectForm({
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
           maxLength={5000}
+          placeholder="Tell the story behind the work…"
           className={`${fieldClass} resize-y`}
         />
       </label>
@@ -106,10 +108,10 @@ export default function ProjectForm({
               type="button"
               onClick={() => setCategory(option)}
               aria-pressed={category === option}
-              className={`border px-2 py-1 font-mono text-[0.6rem] uppercase tracking-widest transition ${
+              className={`border px-2.5 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] transition ${
                 category === option
-                  ? "border-current bg-current/10"
-                  : "border-current/20 text-current/50 hover:border-current/40"
+                  ? "border-[#d66a38] bg-[#d66a38]/10 text-[#f7c1a4]"
+                  : "border-[#2a2a2a] text-[#f5f1ea]/55 hover:border-[#d66a38] hover:text-[#f5f1ea]"
               }`}
             >
               {formatCategory(option)}
@@ -118,11 +120,13 @@ export default function ProjectForm({
         </div>
       </fieldset>
 
-      <MediaUploader
-        value={media}
-        onChange={setMedia}
-        onBusyChange={setUploadBusy}
-      />
+      <div className="border-t border-[#1d1d1d] pt-6">
+        <MediaUploader
+          value={media}
+          onChange={setMedia}
+          onBusyChange={setUploadBusy}
+        />
+      </div>
 
       <label className="block">
         <span className={labelClass}>Tools — comma separated</span>
@@ -156,17 +160,17 @@ export default function ProjectForm({
 
       <fieldset>
         <legend className={labelClass}>Visibility</legend>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {VISIBILITIES.map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setVisibility(option)}
               aria-pressed={visibility === option}
-              className={`border px-3 py-1 font-mono text-[0.6rem] uppercase tracking-widest transition ${
+              className={`border px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] transition ${
                 visibility === option
-                  ? "border-current bg-current/10"
-                  : "border-current/20 text-current/50 hover:border-current/40"
+                  ? "border-[#d66a38] bg-[#d66a38]/10 text-[#f7c1a4]"
+                  : "border-[#2a2a2a] text-[#f5f1ea]/55 hover:border-[#d66a38] hover:text-[#f5f1ea]"
               }`}
             >
               {option}
@@ -176,26 +180,26 @@ export default function ProjectForm({
       </fieldset>
 
       {errors.length > 0 && (
-        <ul role="alert" className="space-y-1 text-sm text-red-500">
+        <ul role="alert" className="space-y-1 text-sm text-[#f76b5f]">
           {errors.map((message) => (
             <li key={message}>{message}</li>
           ))}
         </ul>
       )}
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         <button
           type="submit"
           // Publishing mid-upload would drop the files still in flight.
           disabled={saving || uploadBusy}
-          className="border border-current px-4 py-3 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
+          className="border border-[#d66a38] bg-[#d66a38]/10 px-5 py-3 font-mono text-[0.58rem] uppercase tracking-[0.22em] text-[#f7c1a4] transition hover:bg-[#d66a38]/15 disabled:cursor-not-allowed disabled:opacity-40"
         >
           {saving ? "Saving…" : uploadBusy ? "Uploading…" : submitLabel}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="border border-current/30 px-4 py-3 font-mono text-[0.65rem] uppercase tracking-widest text-current/60 hover:bg-current/5"
+          className="border border-[#2a2a2a] bg-[#111111] px-5 py-3 font-mono text-[0.58rem] uppercase tracking-[0.22em] text-[#f5f1ea] transition hover:border-[#d66a38]"
         >
           Cancel
         </button>

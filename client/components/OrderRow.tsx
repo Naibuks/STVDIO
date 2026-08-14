@@ -10,13 +10,13 @@ import type { Order, OrderStatus, PaymentStatus } from "@/types/api";
 
 /** Tone per status, so the dashboard reads at a glance. */
 const STATUS_TONE: Record<OrderStatus, string> = {
-  PENDING: "text-current/50",
-  ACCEPTED: "text-current",
-  IN_PROGRESS: "text-current",
-  DELIVERED: "text-current",
-  COMPLETED: "text-emerald-500",
-  CANCELLED: "text-current/40 line-through",
-  DISPUTED: "text-red-500",
+  PENDING: "text-[#f5f1ea]/55",
+  ACCEPTED: "text-[#f7c1a4]",
+  IN_PROGRESS: "text-[#f5f1ea]",
+  DELIVERED: "text-[#f5f1ea]",
+  COMPLETED: "text-[#d66a38]",
+  CANCELLED: "text-[#f5f1ea]/35 line-through",
+  DISPUTED: "text-[#f76b5f]",
 };
 
 /** Payment state is shown separately from order state — they are independent. */
@@ -28,10 +28,10 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
 };
 
 const PAYMENT_TONE: Record<PaymentStatus, string> = {
-  PENDING: "text-current/50",
-  PAID: "text-emerald-500",
-  FAILED: "text-red-500",
-  REFUNDED: "text-current/50",
+  PENDING: "text-[#f5f1ea]/55",
+  PAID: "text-[#d66a38]",
+  FAILED: "text-[#f76b5f]",
+  REFUNDED: "text-[#f5f1ea]/50",
 };
 
 /** Verb shown on the button that performs each transition. */
@@ -108,14 +108,14 @@ export default function OrderRow({
   };
 
   return (
-    <article className="border-t border-current/15 py-5">
+    <article className="border-b border-[#1d1d1d] py-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
         <div className="min-w-0">
-          <h3 className="text-sm font-medium">
+          <h3 className="text-[1.35rem] font-medium leading-none tracking-[-0.05em] text-[#f5f1ea]">
             {order.service?._id ? (
               <Link
                 href={`/market/${order.service._id}`}
-                className="hover:opacity-60"
+                className="hover:text-[#f7c1a4]"
               >
                 {order.serviceSnapshot?.title ?? order.service.title}
               </Link>
@@ -123,11 +123,11 @@ export default function OrderRow({
               (order.serviceSnapshot?.title ?? "Service")
             )}
           </h3>
-          <p className="mt-1 font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
+          <p className="mt-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
             {perspective === "client" ? "From" : "For"}{" "}
             <Link
               href={`/profile/${counterparty?.username ?? ""}`}
-              className="underline underline-offset-4 hover:opacity-70"
+              className="text-[#f5f1ea]/70 hover:text-[#f5f1ea]"
             >
               {counterparty?.name ?? "Unknown"}
             </Link>
@@ -137,16 +137,16 @@ export default function OrderRow({
         </div>
 
         <div className="text-right">
-          <p className="text-base font-medium">
+          <p className="text-xl font-medium tracking-[-0.04em] text-[#f5f1ea]">
             {formatMoney(order.amount, order.currency)}
           </p>
           <p
-            className={`mt-1 font-mono text-[0.6rem] uppercase tracking-widest ${STATUS_TONE[order.status]}`}
+            className={`mt-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] ${STATUS_TONE[order.status]}`}
           >
             {order.status.replace(/_/g, " ")}
           </p>
           <p
-            className={`mt-1 font-mono text-[0.55rem] uppercase tracking-widest ${PAYMENT_TONE[order.paymentStatus]}`}
+            className={`mt-1 font-mono text-[0.52rem] uppercase tracking-[0.2em] ${PAYMENT_TONE[order.paymentStatus]}`}
           >
             {PAYMENT_LABEL[order.paymentStatus]}
           </p>
@@ -154,19 +154,19 @@ export default function OrderRow({
       </div>
 
       {order.requirements && (
-        <p className="mt-3 max-w-2xl text-sm text-current/60">
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#f5f1ea]/70">
           {order.requirements}
         </p>
       )}
 
       {(transitions.length > 0 || canPay) && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           {canPay && (
             <button
               type="button"
               onClick={startPayment}
               disabled={paying}
-              className="border border-current bg-current/5 px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest transition hover:bg-current/10 disabled:opacity-40"
+              className="border border-[#d66a38] bg-[#d66a38]/10 px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f7c1a4] transition hover:bg-[#d66a38]/15 disabled:opacity-40"
             >
               {paying
                 ? "Redirecting…"
@@ -181,10 +181,10 @@ export default function OrderRow({
               type="button"
               onClick={() => move(status)}
               disabled={busy !== null}
-              className={`border px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest transition disabled:opacity-40 ${
+              className={`border px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
                 status === "CANCELLED" || status === "DISPUTED"
-                  ? "border-red-500/40 text-red-500 hover:bg-red-500/10"
-                  : "border-current/30 hover:bg-current/5"
+                  ? "border-[#f76b5f]/40 text-[#f76b5f] hover:bg-[#f76b5f]/10"
+                  : "border-[#2a2a2a] text-[#f5f1ea] hover:border-[#d66a38]"
               }`}
             >
               {busy === status ? "Working…" : ACTION_LABEL[status]}
@@ -194,7 +194,7 @@ export default function OrderRow({
       )}
 
       {error && (
-        <p role="alert" className="mt-3 text-sm text-red-500">
+        <p role="alert" className="mt-3 text-sm text-[#f76b5f]">
           {error}
         </p>
       )}

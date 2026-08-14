@@ -27,45 +27,39 @@ export default function CollaborationCard({
   const open = collaboration.status === "OPEN";
 
   return (
-    <article className="group border-t border-current/15 py-6">
+    <article className="group border-b border-[#1d1d1d] py-7 transition-colors hover:border-[#2a2a2a]">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <p className="font-mono text-[0.6rem] uppercase tracking-widest text-current/50">
+        <p className="font-mono text-[0.56rem] uppercase tracking-[0.24em] text-[#f5f1ea]/45">
           {formatCategory(collaboration.category)}
           {collaboration.location ? ` · ${collaboration.location}` : ""}
           {collaboration.isRemote ? " · Remote" : ""}
         </p>
         <p
-          className={`font-mono text-[0.6rem] uppercase tracking-widest ${
-            open ? "text-current/50" : "text-current/30"
+          className={`font-mono text-[0.56rem] uppercase tracking-[0.24em] ${
+            open ? "text-[#f7c1a4]" : "text-[#f5f1ea]/35"
           }`}
         >
           {collaboration.status}
         </p>
       </div>
 
-      <h3 className="mt-2 text-xl font-medium leading-snug tracking-tight sm:text-2xl">
-        <Link
-          href={`/collaborations/${collaboration._id}`}
-          className="hover:opacity-60"
-        >
+      <h3 className="mt-3 text-2xl font-medium leading-none tracking-[-0.06em] text-[#f5f1ea] sm:text-3xl">
+        <Link href={`/collaborations/${collaboration._id}`} className="hover:text-[#f7c1a4]">
           {collaboration.title}
         </Link>
       </h3>
 
-      <p className="mt-2 line-clamp-2 max-w-2xl text-sm text-current/70">
+      <p className="mt-3 line-clamp-2 max-w-3xl text-sm leading-relaxed text-[#f5f1ea]/72">
         {collaboration.description}
       </p>
 
-      <div className="mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
+      <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
         <span>
-          <Link
-            href={`/profile/${collaboration.creator?.username ?? ""}`}
-            className="hover:opacity-70"
-          >
+          <Link href={`/profile/${collaboration.creator?.username ?? ""}`} className="hover:text-[#f5f1ea]">
             {collaboration.creator?.name ?? "Unknown"}
           </Link>
         </span>
-        {budget && <span className="text-current/70">{budget}</span>}
+        {budget && <span className="text-[#f5f1ea]/70">{budget}</span>}
         {collaboration.deadline && (
           <span>Closes {formatDate(collaboration.deadline)}</span>
         )}

@@ -14,14 +14,14 @@ export default function ProjectGrid({
 }) {
   if (projects.length === 0) {
     return (
-      <p className="border-t border-current/15 py-8 font-mono text-xs uppercase tracking-widest text-current/40">
+      <p className="border-t border-[#1d1d1d] py-8 font-mono text-[0.56rem] uppercase tracking-[0.3em] text-[#f3efe8]/40">
         {emptyMessage}
       </p>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
       {projects.map((project) => (
         <ProjectCard
           key={project._id}

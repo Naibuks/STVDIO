@@ -97,7 +97,7 @@ export default function ConversationList({
 
   if (conversations === null) {
     return (
-      <p className="px-6 py-8 font-mono text-xs uppercase tracking-widest text-current/40">
+      <p className="px-6 py-8 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
         Loading…
       </p>
     );
@@ -105,7 +105,7 @@ export default function ConversationList({
 
   if (conversations.length === 0) {
     return (
-      <p className="px-6 py-8 font-mono text-xs uppercase tracking-widest text-current/40">
+      <p className="px-6 py-8 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
         No conversations yet. Open someone&rsquo;s profile to start one.
       </p>
     );
@@ -122,17 +122,17 @@ export default function ConversationList({
           <li key={conversation._id}>
             <Link
               href={`/messages/${conversation._id}`}
-              className={`flex items-start gap-3 border-b border-current/10 px-6 py-4 transition ${
-                active ? "bg-current/5" : "hover:bg-current/5"
+              className={`flex items-start gap-3 border-b border-[#1d1d1d] px-6 py-4 transition ${
+                active ? "bg-[#111111]" : "hover:bg-[#111111]"
               }`}
             >
-              <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-current/10">
+              <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[#2a2a2a] bg-[#111111]">
                 <SafeImage
                   src={other?.avatar?.url}
                   alt={other?.name ?? "Unknown"}
                   className="h-full w-full object-cover"
                   fallback={
-                    <span className="flex h-full items-center justify-center text-xs font-medium text-current/30">
+                    <span className="flex h-full items-center justify-center text-xs font-medium text-[#f5f1ea]/40">
                       {other?.name?.charAt(0) ?? "?"}
                     </span>
                   }
@@ -141,16 +141,16 @@ export default function ConversationList({
 
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-3">
-                  <span className="truncate text-sm font-medium">
+                  <span className="truncate text-sm font-medium text-[#f5f1ea]">
                     {other?.name ?? "Unknown"}
                     {online && (
                       <span
                         aria-label="online"
-                        className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle"
+                        className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[#d66a38] align-middle"
                       />
                     )}
                   </span>
-                  <span className="shrink-0 font-mono text-[0.55rem] uppercase tracking-widest text-current/40">
+                  <span className="shrink-0 font-mono text-[0.52rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
                     {timeLabel(conversation.lastMessageAt)}
                   </span>
                 </span>
@@ -159,14 +159,14 @@ export default function ConversationList({
                   <span
                     className={`truncate text-xs ${
                       conversation.unreadCount > 0
-                        ? "text-current/80"
-                        : "text-current/40"
+                        ? "text-[#f5f1ea]/80"
+                        : "text-[#f5f1ea]/45"
                     }`}
                   >
                     {conversation.lastMessage?.content ?? "No messages yet"}
                   </span>
                   {conversation.unreadCount > 0 && (
-                    <span className="shrink-0 bg-current px-1.5 py-0.5 font-mono text-[0.55rem] text-neutral-900 dark:text-neutral-100">
+                    <span className="shrink-0 bg-[#d66a38] px-1.5 py-0.5 font-mono text-[0.52rem] text-[#080808]">
                       {conversation.unreadCount}
                     </span>
                   )}

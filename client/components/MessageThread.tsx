@@ -199,7 +199,7 @@ export default function MessageThread({
   if (error && !conversation) {
     return (
       <div className="flex flex-1 items-center justify-center px-6 py-20">
-        <p role="alert" className="text-sm text-red-500">
+        <p role="alert" className="text-sm text-[#f76b5f]">
           {error}
         </p>
       </div>
@@ -207,40 +207,37 @@ export default function MessageThread({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex items-center gap-3 border-b border-current/15 px-6 py-4">
+    <div className="flex min-h-0 flex-1 flex-col bg-[#080808] text-[#f5f1ea]">
+      <header className="flex items-center gap-3 border-b border-[#1d1d1d] px-6 py-4">
         <Link
           href="/messages"
-          className="font-mono text-[0.65rem] uppercase tracking-widest text-current/50 hover:opacity-70 lg:hidden"
+          className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/50 hover:text-[#f5f1ea] lg:hidden"
         >
           ←
         </Link>
-        <span className="h-9 w-9 shrink-0 overflow-hidden rounded-full bg-current/10">
+        <span className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a2a] bg-[#111111]">
           <SafeImage
             src={other?.avatar?.url}
             alt={other?.name ?? ""}
             className="h-full w-full object-cover"
             fallback={
-              <span className="flex h-full items-center justify-center text-xs font-medium text-current/30">
+              <span className="flex h-full items-center justify-center text-xs font-medium text-[#f5f1ea]/40">
                 {other?.name?.charAt(0) ?? "?"}
               </span>
             }
           />
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium">
+          <p className="truncate text-[1rem] font-medium tracking-[-0.04em] text-[#f5f1ea]">
             {other ? (
-              <Link
-                href={`/profile/${other.username}`}
-                className="hover:opacity-60"
-              >
+              <Link href={`/profile/${other.username}`} className="hover:text-[#f7c1a4]">
                 {other.name}
               </Link>
             ) : (
               "Conversation"
             )}
           </p>
-          <p className="font-mono text-[0.55rem] uppercase tracking-widest text-current/40">
+          <p className="font-mono text-[0.52rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
             {online ? "Online" : "Offline"}
             {status !== "connected" && " · reconnecting"}
           </p>
@@ -253,7 +250,7 @@ export default function MessageThread({
             <button
               type="button"
               onClick={loadOlder}
-              className="border border-current/30 px-3 py-2 font-mono text-[0.6rem] uppercase tracking-widest hover:bg-current/5"
+              className="border border-[#2a2a2a] bg-[#111111] px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea] transition hover:border-[#d66a38]"
             >
               Load earlier
             </button>
@@ -261,13 +258,13 @@ export default function MessageThread({
         )}
 
         {messages === null && (
-          <p className="font-mono text-xs uppercase tracking-widest text-current/40">
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
             Loading…
           </p>
         )}
 
         {messages?.length === 0 && (
-          <p className="font-mono text-xs uppercase tracking-widest text-current/40">
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
             No messages yet — say something.
           </p>
         )}
@@ -285,13 +282,13 @@ export default function MessageThread({
                   <p
                     className={`whitespace-pre-wrap border px-4 py-3 text-sm leading-relaxed ${
                       mine
-                        ? "border-current/30 bg-current/5"
-                        : "border-current/15"
+                        ? "border-[#d66a38]/40 bg-[#d66a38]/10 text-[#f5f1ea]"
+                        : "border-[#1d1d1d] bg-[#111111] text-[#f5f1ea]"
                     }`}
                   >
                     {message.content}
                   </p>
-                  <p className="mt-1 font-mono text-[0.55rem] uppercase tracking-widest text-current/30">
+                  <p className="mt-1 font-mono text-[0.5rem] uppercase tracking-[0.22em] text-[#f5f1ea]/35">
                     {timeLabel(message.createdAt)}
                     {mine && (message.read ? " · Read" : " · Sent")}
                   </p>
@@ -303,10 +300,7 @@ export default function MessageThread({
         <div ref={bottomRef} />
       </div>
 
-      <form
-        onSubmit={send}
-        className="border-t border-current/15 px-6 py-4"
-      >
+      <form onSubmit={send} className="border-t border-[#1d1d1d] px-6 py-4">
         <div className="flex items-end gap-3">
           <textarea
             value={draft}
@@ -315,18 +309,18 @@ export default function MessageThread({
             rows={1}
             maxLength={MAX_LENGTH}
             placeholder="Write a message…"
-            className="max-h-40 flex-1 resize-y border-b border-current/30 bg-transparent py-2 text-sm outline-none focus:border-current"
+            className="max-h-40 flex-1 resize-y border-b border-[#2a2a2a] bg-transparent py-2 text-sm text-[#f5f1ea] placeholder:text-[#f5f1ea]/35 outline-none focus:border-[#d66a38]"
           />
           <button
             type="submit"
             disabled={sending || !draft.trim()}
-            className="border border-current px-4 py-2 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
+            className="border border-[#d66a38] bg-[#d66a38]/10 px-4 py-2 font-mono text-[0.58rem] uppercase tracking-[0.22em] text-[#f7c1a4] transition hover:bg-[#d66a38]/15 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {sending ? "Sending…" : "Send"}
           </button>
         </div>
         {error && (
-          <p role="alert" className="mt-2 text-xs text-red-500">
+          <p role="alert" className="mt-2 text-xs text-[#f76b5f]">
             {error}
           </p>
         )}

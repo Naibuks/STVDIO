@@ -79,26 +79,26 @@ export default function Feed({
   return (
     <div>
       {showFilter && (
-        <div className="mb-8">
+        <div className="mb-8 border-b border-[#1d1d1d] pb-4">
           <CategoryFilter value={category} onChange={setCategory} />
         </div>
       )}
 
       {status === "error" && (
-        <p role="alert" className="py-8 text-sm text-red-500">
+        <p role="alert" className="py-8 font-mono text-[0.58rem] uppercase tracking-[0.24em] text-[#d56c46]">
           {error}
         </p>
       )}
 
       {status === "loading" && projects.length === 0 && (
-        <p className="border-t border-current/15 py-8 font-mono text-xs uppercase tracking-widest text-current/40">
+        <p className="border-t border-[#1d1d1d] py-8 font-mono text-[0.58rem] uppercase tracking-[0.3em] text-[#f3efe8]/40">
           Loading…
         </p>
       )}
 
       {status !== "error" && (projects.length > 0 || status === "ready") && (
         <>
-          <p className="mb-6 font-mono text-[0.65rem] uppercase tracking-widest text-current/40">
+          <p className="mb-6 font-mono text-[0.56rem] uppercase tracking-[0.28em] text-[#f3efe8]/45">
             {total} {total === 1 ? "project" : "projects"}
             {search ? ` matching “${search}”` : ""}
           </p>
@@ -120,7 +120,7 @@ export default function Feed({
                 type="button"
                 onClick={loadMore}
                 disabled={status === "loading"}
-                className="border border-current px-5 py-3 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
+                className="border border-[#2a2a2a] bg-transparent px-5 py-3 font-mono text-[0.58rem] uppercase tracking-[0.24em] text-[#f3efe8] transition-colors duration-200 hover:border-[#f3efe8]/40 disabled:opacity-40"
               >
                 {status === "loading" ? "Loading…" : "Load more"}
               </button>

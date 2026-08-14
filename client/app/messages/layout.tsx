@@ -46,23 +46,28 @@ export default function MessagesLayout({
 
   if (loading || !user) {
     return (
-      <main className="px-6 py-20 font-mono text-xs uppercase tracking-widest text-current/40">
+      <main className="px-6 py-20 font-mono text-[0.62rem] uppercase tracking-[0.24em] text-[#f5f1ea]/40">
         Loading…
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-0 flex-1 lg:h-[calc(100vh-4.5rem)]">
+    <main className="flex min-h-0 flex-1 bg-[#080808] text-[#f5f1ea] lg:h-[calc(100vh-4.5rem)]">
       <aside
-        className={`w-full shrink-0 border-current/15 lg:block lg:w-80 lg:border-r ${
+        className={`w-full shrink-0 border-[#1d1d1d] lg:block lg:w-[22rem] lg:border-r ${
           activeId ? "hidden" : "block"
         }`}
       >
-        <header className="border-b border-current/15 px-6 py-5">
-          <h1 className="text-xl font-medium tracking-tight">Messages</h1>
+        <header className="border-b border-[#1d1d1d] px-6 py-5">
+          <p className="font-mono text-[0.58rem] uppercase tracking-[0.28em] text-[#f5f1ea]/55">
+            Studio inbox
+          </p>
+          <h1 className="mt-3 text-2xl font-medium tracking-[-0.06em] text-[#f5f1ea]">
+            Conversations
+          </h1>
         </header>
-        <div className="overflow-y-auto lg:h-[calc(100%-5rem)]">
+        <div className="overflow-y-auto lg:h-[calc(100%-6.2rem)]">
           <ConversationList
             conversations={conversations}
             setConversations={setConversations}

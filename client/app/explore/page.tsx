@@ -47,94 +47,102 @@ export default function ExplorePage() {
   };
 
   const tabClass = (active: boolean) =>
-    `border-b-2 pb-2 font-mono text-[0.65rem] uppercase tracking-widest transition ${
+    `border-b-2 pb-2 font-mono text-[0.62rem] uppercase tracking-[0.28em] transition ${
       active
-        ? "border-current"
-        : "border-transparent text-current/40 hover:text-current/70"
+        ? "border-[#d66a38] text-[#f5f1ea]"
+        : "border-transparent text-[#f5f1ea]/45 hover:text-[#f5f1ea]/75"
     }`;
 
   return (
-    <main className="px-6 py-12 sm:px-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-medium tracking-tight sm:text-5xl">
-          Explore
-        </h1>
-        <p className="mt-2 max-w-md font-mono text-[0.65rem] uppercase tracking-widest text-current/50">
-          Discover work and creatives on STVDIO°
-        </p>
+    <main className="min-h-screen bg-[#080808] px-4 py-10 text-[#f5f1ea] sm:px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8 border-b border-[#1d1d1d] pb-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="font-mono text-[0.58rem] uppercase tracking-[0.28em] text-[#f5f1ea]/45">
+                Discover
+              </p>
+              <h1 className="mt-3 text-3xl font-medium tracking-[-0.08em] text-[#f5f1ea] sm:text-4xl">
+                Explore
+              </h1>
+            </div>
 
-        <form onSubmit={onSearch} className="mt-8 flex max-w-xl gap-3">
-          <input
-            type="search"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Search work, tags, creatives…"
-            aria-label="Search"
-            className="flex-1 border-b border-current/30 bg-transparent py-2 outline-none focus:border-current"
-          />
-          <button
-            type="submit"
-            className="border border-current px-4 py-2 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5"
-          >
-            Search
-          </button>
-        </form>
+            <form onSubmit={onSearch} className="flex w-full max-w-xl items-center gap-3">
+              <input
+                type="search"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Search work, tags, creatives…"
+                aria-label="Search"
+                className="flex-1 border-b border-[#2a2a2a] bg-transparent py-2 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[#f5f1ea] placeholder:text-[#f5f1ea]/35 outline-none transition focus:border-[#d66a38]"
+              />
+              <button
+                type="submit"
+                className="border border-[#2a2a2a] bg-[#111111] px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea] transition hover:border-[#d66a38] hover:text-[#f5f1ea]"
+              >
+                Search
+              </button>
+            </form>
+          </div>
 
-        {search && (
+          {search && (
+            <button
+              type="button"
+              onClick={() => {
+                setInput("");
+                setSearch("");
+              }}
+              className="mt-4 font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea]/50 underline decoration-[#d66a38]/70 underline-offset-4 transition hover:text-[#f5f1ea]"
+            >
+              Clear “{search}”
+            </button>
+          )}
+        </header>
+
+        <nav className="mb-8 flex gap-6 border-b border-[#1d1d1d] pb-2">
           <button
             type="button"
-            onClick={() => {
-              setInput("");
-              setSearch("");
-            }}
-            className="mt-3 font-mono text-[0.6rem] uppercase tracking-widest text-current/40 underline underline-offset-4"
+            onClick={() => setTab("work")}
+            className={tabClass(tab === "work")}
           >
-            Clear “{search}”
+            Work
           </button>
+          <button
+            type="button"
+            onClick={() => setTab("creatives")}
+            className={tabClass(tab === "creatives")}
+          >
+            Creatives to discover
+          </button>
+        </nav>
+
+        {tab === "work" ? (
+          <div className="pt-2">
+            <Feed search={search} />
+          </div>
+        ) : (
+          <section className="pt-2">
+            {creativesError && (
+              <p role="alert" className="py-8 text-sm text-[#d66a38]">
+                {creativesError}
+              </p>
+            )}
+            {creatives === null && !creativesError && (
+              <p className="py-8 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
+                Loading…
+              </p>
+            )}
+            {creatives?.length === 0 && (
+              <p className="py-8 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
+                No creatives match that search.
+              </p>
+            )}
+            {creatives?.map((user) => (
+              <UserCard key={user._id} user={user} />
+            ))}
+          </section>
         )}
-      </header>
-
-      <nav className="mb-8 flex gap-6 border-b border-current/15">
-        <button
-          type="button"
-          onClick={() => setTab("work")}
-          className={tabClass(tab === "work")}
-        >
-          Work
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("creatives")}
-          className={tabClass(tab === "creatives")}
-        >
-          Creatives to discover
-        </button>
-      </nav>
-
-      {tab === "work" ? (
-        <Feed search={search} />
-      ) : (
-        <section>
-          {creativesError && (
-            <p role="alert" className="py-8 text-sm text-red-500">
-              {creativesError}
-            </p>
-          )}
-          {creatives === null && !creativesError && (
-            <p className="py-8 font-mono text-xs uppercase tracking-widest text-current/40">
-              Loading…
-            </p>
-          )}
-          {creatives?.length === 0 && (
-            <p className="py-8 font-mono text-xs uppercase tracking-widest text-current/40">
-              No creatives match that search.
-            </p>
-          )}
-          {creatives?.map((user) => (
-            <UserCard key={user._id} user={user} />
-          ))}
-        </section>
-      )}
+      </div>
     </main>
   );
 }

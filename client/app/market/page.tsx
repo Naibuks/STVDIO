@@ -74,117 +74,124 @@ export default function MarketPage() {
   };
 
   return (
-    <main className="px-6 py-12 sm:px-10">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-medium tracking-tight sm:text-5xl">
-            Marketplace
-          </h1>
-          <p className="mt-2 max-w-md font-mono text-[0.65rem] uppercase tracking-widest text-current/50">
-            Hire creatives on STVDIO°
+    <main className="min-h-screen bg-[#080808] px-4 py-10 text-[#f5f1ea] sm:px-6 lg:px-12">
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8 border-b border-[#1d1d1d] pb-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="font-mono text-[0.58rem] uppercase tracking-[0.28em] text-[#f5f1ea]/55">
+                Creative services
+              </p>
+              <h1 className="mt-3 text-2xl font-medium tracking-[-0.06em] text-[#f5f1ea] sm:text-3xl">
+                Marketplace
+              </h1>
+            </div>
+
+            {user && (
+              <div className="flex flex-wrap gap-3 font-mono text-[0.58rem] uppercase tracking-[0.22em]">
+                <Link
+                  href="/orders"
+                  className="border border-[#2a2a2a] bg-[#111111] px-4 py-2.5 transition hover:border-[#d66a38] hover:text-[#f5f1ea]"
+                >
+                  My orders
+                </Link>
+                <Link
+                  href="/market/new"
+                  className="border border-[#d66a38] bg-[#d66a38]/10 px-4 py-2.5 text-[#f7c1a4] transition hover:bg-[#d66a38]/15"
+                >
+                  Offer a service
+                </Link>
+              </div>
+            )}
+          </div>
+        </header>
+
+        <div className="mb-8 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <form onSubmit={onSearch} className="flex max-w-2xl flex-1 gap-3">
+            <input
+              type="search"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Search services…"
+              aria-label="Search services"
+              className="flex-1 border-b border-[#2a2a2a] bg-transparent py-2 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-[#f5f1ea] placeholder:text-[#f5f1ea]/35 outline-none transition focus:border-[#d66a38]"
+            />
+            <button
+              type="submit"
+              className="border border-[#2a2a2a] bg-[#111111] px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea] transition hover:border-[#d66a38]"
+            >
+              Search
+            </button>
+          </form>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            {SORTS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setSort(option.value)}
+                aria-pressed={sort === option.value}
+                className={`border px-2.5 py-2 font-mono text-[0.56rem] uppercase tracking-[0.22em] transition ${
+                  sort === option.value
+                    ? "border-[#d66a38] bg-[#d66a38]/10 text-[#f7c1a4]"
+                    : "border-[#1d1d1d] text-[#f5f1ea]/55 hover:border-[#2a2a2a] hover:text-[#f5f1ea]"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-8 border-b border-[#1d1d1d] pb-3">
+          <CategoryFilter value={category} onChange={setCategory} />
+        </div>
+
+        <div className="mb-8 flex items-center justify-between gap-4 border-b border-[#1d1d1d] pb-4">
+          <p className="font-mono text-[0.58rem] uppercase tracking-[0.24em] text-[#f5f1ea]/45">
+            {total} {total === 1 ? "service" : "services"}
+            {search ? ` matching “${search}”` : ""}
           </p>
         </div>
 
-        {user && (
-          <div className="flex gap-3 font-mono text-[0.65rem] uppercase tracking-widest">
-            <Link
-              href="/orders"
-              className="border border-current/30 px-3 py-2 hover:bg-current/5"
-            >
-              My orders
-            </Link>
-            <Link
-              href="/market/new"
-              className="border border-current px-3 py-2 hover:bg-current/5"
-            >
-              Offer a service
-            </Link>
-          </div>
+        {status === "error" && (
+          <p role="alert" className="py-8 text-sm text-[#d66a38]">
+            {error}
+          </p>
         )}
-      </header>
 
-      <form onSubmit={onSearch} className="mb-6 flex max-w-xl gap-3">
-        <input
-          type="search"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Search services…"
-          aria-label="Search services"
-          className="flex-1 border-b border-current/30 bg-transparent py-2 outline-none focus:border-current"
-        />
-        <button
-          type="submit"
-          className="border border-current px-4 py-2 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5"
-        >
-          Search
-        </button>
-      </form>
+        {status === "loading" && services.length === 0 && (
+          <p className="border-t border-[#1d1d1d] py-8 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea]/40">
+            Loading…
+          </p>
+        )}
 
-      <div className="mb-6">
-        <CategoryFilter value={category} onChange={setCategory} />
+        {status !== "error" && (services.length > 0 || status === "ready") && (
+          <>
+            <ServiceGrid
+              services={services}
+              emptyMessage={
+                search || category
+                  ? "No services match that search."
+                  : "No services listed yet."
+              }
+            />
+
+            {hasMore && (
+              <div className="mt-12 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => load(page + 1, true)}
+                  disabled={status === "loading"}
+                  className="border border-[#2a2a2a] bg-[#111111] px-5 py-3 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-[#f5f1ea] transition hover:border-[#d66a38] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {status === "loading" ? "Loading…" : "Load more"}
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
-
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <p className="font-mono text-[0.65rem] uppercase tracking-widest text-current/40">
-          {total} {total === 1 ? "service" : "services"}
-          {search ? ` matching “${search}”` : ""}
-        </p>
-        <div className="flex gap-2">
-          {SORTS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setSort(option.value)}
-              aria-pressed={sort === option.value}
-              className={`border px-2 py-1 font-mono text-[0.6rem] uppercase tracking-widest transition ${
-                sort === option.value
-                  ? "border-current bg-current/10"
-                  : "border-current/20 text-current/50 hover:border-current/40"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {status === "error" && (
-        <p role="alert" className="py-8 text-sm text-red-500">
-          {error}
-        </p>
-      )}
-
-      {status === "loading" && services.length === 0 && (
-        <p className="border-t border-current/15 py-8 font-mono text-xs uppercase tracking-widest text-current/40">
-          Loading…
-        </p>
-      )}
-
-      {status !== "error" && (services.length > 0 || status === "ready") && (
-        <>
-          <ServiceGrid
-            services={services}
-            emptyMessage={
-              search || category
-                ? "No services match that search."
-                : "No services listed yet."
-            }
-          />
-
-          {hasMore && (
-            <div className="mt-12 flex justify-center">
-              <button
-                type="button"
-                onClick={() => load(page + 1, true)}
-                disabled={status === "loading"}
-                className="border border-current px-5 py-3 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
-              >
-                {status === "loading" ? "Loading…" : "Load more"}
-              </button>
-            </div>
-          )}
-        </>
-      )}
     </main>
   );
 }

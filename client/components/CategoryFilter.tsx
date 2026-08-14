@@ -12,10 +12,10 @@ export default function CategoryFilter({
   onChange: (category: Category | "") => void;
 }) {
   const chip = (active: boolean) =>
-    `shrink-0 border px-2 py-1 font-mono text-[0.6rem] uppercase tracking-widest transition ${
+    `shrink-0 border px-3 py-2 font-mono text-[0.56rem] uppercase tracking-[0.24em] transition-colors duration-200 ${
       active
-        ? "border-current bg-current/10"
-        : "border-current/20 text-current/50 hover:border-current/40"
+        ? "border-[#f3efe8] bg-[#f3efe8] text-[#070707]"
+        : "border-[#1d1d1d] bg-transparent text-[#f3efe8]/60 hover:border-[#2a2a2a] hover:text-[#f3efe8]"
     }`;
 
   return (
