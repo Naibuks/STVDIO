@@ -8,7 +8,7 @@ import { useAuth } from "@/components/AuthProvider";
 export default function LoginPage() {
   const { signIn } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError(null);
     setSubmitting(true);
     try {
-      await signIn(email, password);
+      await signIn(identifier, password);
       router.push("/profile");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
@@ -37,14 +37,15 @@ export default function LoginPage() {
       <form onSubmit={onSubmit} className="mt-10 space-y-6">
         <label className="block">
           <span className="font-mono text-[0.65rem] uppercase tracking-widest text-current/50">
-            Email
+            Email or username
           </span>
           <input
-            type="email"
+            type="text"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            placeholder="you@example.com or username"
+            autoComplete="username"
             className="mt-2 w-full border-b border-current/30 bg-transparent py-2 outline-none focus:border-current"
           />
         </label>

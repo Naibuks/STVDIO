@@ -7,10 +7,10 @@ import type {
   RegisterInput,
 } from "@/types/api";
 
-export const login = (email: string, password: string) =>
+export const login = (identifier: string, password: string) =>
   apiData<AuthPayload>("/auth/login", {
     method: "POST",
-    body: json({ email, password }),
+    body: json({ identifier, password }),
   });
 
 export const register = (input: RegisterInput) =>

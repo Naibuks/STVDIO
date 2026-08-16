@@ -15,7 +15,7 @@ type AuthState = {
   user: User | null;
   /** True until the stored token has been checked against the API. */
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<User>;
+  signIn: (identifier: string, password: string) => Promise<User>;
   /** Create an account and sign straight in — /auth/register returns a token. */
   signUp: (input: RegisterInput) => Promise<User>;
   signOut: () => void;
@@ -57,8 +57,8 @@ export default function AuthProvider({
     };
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const { user, token } = await usersApi.login(email, password);
+  const signIn = useCallback(async (identifier: string, password: string) => {
+    const { user, token } = await usersApi.login(identifier, password);
     setToken(token);
     setUser(user);
     return user;
