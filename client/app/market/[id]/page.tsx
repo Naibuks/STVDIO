@@ -142,17 +142,21 @@ export default function ServiceDetailPage({
             {service.media.length > 0 && (
               <div className="mt-8 space-y-4">
                 {service.media.map((item, index) => (
-                  <SafeImage
+                  <div
                     key={`${item.url}-${index}`}
-                    src={item.url}
-                    alt={`${service.title} — image ${index + 1}`}
-                    className="w-full bg-current/5 object-cover"
-                    fallback={
-                      <div className="flex aspect-[4/3] w-full items-center justify-center bg-current/5 font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
-                        Image unavailable
-                      </div>
-                    }
-                  />
+                    className="relative w-full overflow-hidden border border-current/15 bg-current/5 aspect-[4/3]"
+                  >
+                    <SafeImage
+                      src={item.url}
+                      alt={`${service.title} — image ${index + 1}`}
+                      className="h-full w-full object-cover"
+                      fallback={
+                        <div className="flex h-full w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
+                          Image unavailable
+                        </div>
+                      }
+                    />
+                  </div>
                 ))}
               </div>
             )}

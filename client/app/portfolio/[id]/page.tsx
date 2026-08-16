@@ -128,19 +128,23 @@ export default function ProjectDetailPage({
 
         <div className="mt-10 space-y-6">
           {project.media.map((item, index) => (
-            <SafeMedia
+            <div
               key={`${item.url}-${index}`}
-              media={item}
-              alt={`${project.title} — item ${index + 1}`}
-              className="w-full border border-[#1d1d1d] bg-[#111111] object-cover"
-              // Full size: videos get controls rather than silent autoplay.
-              variant="full"
-              fallback={
-                <div className="flex aspect-[4/3] w-full items-center justify-center border border-[#1d1d1d] bg-[#111111] font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[#f5f1ea]/35">
-                  Media unavailable
-                </div>
-              }
-            />
+              className="relative w-full overflow-hidden border border-[#1d1d1d] bg-[#111111] aspect-[4/3]"
+            >
+              <SafeMedia
+                media={item}
+                alt={`${project.title} — item ${index + 1}`}
+                className="h-full w-full object-cover"
+                // Full size: videos get controls rather than silent autoplay.
+                variant="full"
+                fallback={
+                  <div className="flex h-full w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[#f5f1ea]/35">
+                    Media unavailable
+                  </div>
+                }
+              />
+            </div>
           ))}
         </div>
 
