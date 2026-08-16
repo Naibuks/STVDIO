@@ -130,6 +130,17 @@ const anyTooLong = (list, maxLength) =>
  * absent from this whitelist and therefore silently unreachable, no matter
  * what the client sends.
  */
+const validateAccountDeletion = (body = {}) => {
+  const errors = [];
+  const confirmation = typeof body?.confirmation === "string" ? body.confirmation.trim() : "";
+
+  if (confirmation !== "DELETE") {
+    errors.push("Type DELETE to confirm permanent account deletion");
+  }
+
+  return { errors, value: { confirmation } };
+};
+
 const validateProfileUpdate = (body = {}) => {
   const errors = [];
   const value = {};

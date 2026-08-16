@@ -25,6 +25,18 @@ export const getMe = () => apiData<ProfilePayload>("/users/me");
 export const updateMe = (patch: ProfileUpdate) =>
   apiData<ProfilePayload>("/users/me", { method: "PUT", body: json(patch) });
 
+export const deleteMe = ({ confirmation }: { confirmation: string }) =>
+  apiData<{
+    deletedUserId: string;
+    deletedProjects: boolean;
+    deletedServices: boolean;
+    deletedConversations: number;
+    preservedFinancialHistory: boolean;
+  }>("/users/me", {
+    method: "DELETE",
+    body: json({ confirmation }),
+  });
+
 export const getProfile = (username: string) =>
   apiData<ProfilePayload>(`/users/${encodeURIComponent(username)}`);
 

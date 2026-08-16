@@ -2,6 +2,7 @@ const express = require("express");
 const {
   getMe,
   updateMe,
+  deleteMe,
   getPublicProfile,
   getUserProjects,
 } = require("../controllers/user.controller");
@@ -22,6 +23,7 @@ const router = express.Router();
 // dynamic segment and treated as a user called "me".
 router.get("/me", authenticate, getMe);
 router.put("/me", authenticate, updateMe);
+router.delete("/me", authenticate, deleteMe);
 
 // Public, but optionalAuthenticate lets the owner see their own unlisted and
 // private work on their own profile, and tells a signed-in viewer whether they

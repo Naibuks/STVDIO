@@ -1,4 +1,18 @@
-const { User, Project } = require("../models");
+const mongoose = require("mongoose");
+const {
+  User,
+  Project,
+  Service,
+  Like,
+  Comment,
+  Follow,
+  Notification,
+  Collaboration,
+  CollaborationApplication,
+  Conversation,
+  Message,
+  Review,
+} = require("../models");
 const ApiError = require("../utils/ApiError");
 const { PROJECT_VISIBILITY } = require("../utils/constants");
 
@@ -104,9 +118,71 @@ const updateOwnProfile = async (userId, patch) => {
   return user;
 };
 
+/**
+ * Delete the authenticated user and the data they created while keeping the
+ * financial audit trail intact. We do not accept a client-supplied userId and
+ * we clean up all user-owned references before removing the account itself.
+ */
+const deleteOwnAccount = async (userId, confirmation) => {
+  if (confirmation !== "DELETE") {
+    throw ApiError.badRequest("Confirmation required", ["Type DELETE to confirm account deletion"]);
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    throw ApiError.notFound("User not found");
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw ApiError.notFound("User not found");
+
+  const userObjectId = user._id;
+
+  const conversations = await Conversation.find({ participants: userObjectId }).select(
+    "_id",
+  );
+  const conversationIds = conversations.map((conversation) => conversation._id);
+
+  await Promise.all([
+    Project.deleteMany({ owner: userObjectId }),
+    Service.deleteMany({ creator: userObjectId }),
+    Like.deleteMany({ $or: [{ user: userObjectId }, { project: { $in: await Project.find({ owner: userObjectId }).distinct("_id") } }] }),
+    Comment.deleteMany({ $or: [{ user: userObjectId }, { project: { $in: await Project.find({ owner: userObjectId }).distinct("_id") } }] }),
+    Follow.deleteMany({
+      $or: [{ follower: userObjectId }, { following: userObjectId }],
+    }),
+    Notification.deleteMany({
+      $or: [{ recipient: userObjectId }, { actor: userObjectId }],
+    }),
+    Collaboration.deleteMany({ creator: userObjectId }),
+    CollaborationApplication.deleteMany({ applicant: userObjectId }),
+    Review.deleteMany({
+      $or: [{ reviewer: userObjectId }, { creative: userObjectId }],
+    }),
+    Message.deleteMany({
+      $or: [{ sender: userObjectId }, { conversation: { $in: conversationIds } }],
+    }),
+    Conversation.deleteMany({ participants: userObjectId }),
+    Project.updateMany(
+      { collaborators: userObjectId },
+      { $pull: { collaborators: userObjectId } },
+    ),
+  ]);
+
+  await User.findByIdAndDelete(userObjectId);
+
+  return {
+    deletedUserId: String(userObjectId),
+    deletedProjects: true,
+    deletedServices: true,
+    deletedConversations: conversationIds.length,
+    preservedFinancialHistory: true,
+  };
+};
+
 module.exports = {
   getPublicProfile,
   getUserProjects,
   updateOwnProfile,
+  deleteOwnAccount,
   PUBLIC_PROFILE_FIELDS,
 };

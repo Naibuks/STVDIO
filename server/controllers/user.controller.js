@@ -2,7 +2,7 @@ const userService = require("../services/user.service");
 const followService = require("../services/follow.service");
 const { withLikeState } = require("../services/feed.service");
 const ApiError = require("../utils/ApiError");
-const { validateProfileUpdate } = require("../utils/validators");
+const { validateProfileUpdate, validateAccountDeletion } = require("../utils/validators");
 
 /** GET /api/users/me — the caller's own profile, including private fields. */
 const getMe = async (req, res) => {
@@ -24,6 +24,20 @@ const updateMe = async (req, res) => {
     success: true,
     message: "Profile updated",
     data: { user },
+  });
+};
+
+/** DELETE /api/users/me — permanently delete the authenticated user account. */
+const deleteMe = async (req, res) => {
+  const { errors, value } = validateAccountDeletion(req.body);
+  if (errors.length) throw ApiError.badRequest("Confirmation required", errors);
+
+  const result = await userService.deleteOwnAccount(req.user._id, value.confirmation);
+
+  res.json({
+    success: true,
+    message: "Account deleted",
+    data: result,
   });
 };
 
@@ -68,4 +82,4 @@ const getUserProjects = async (req, res) => {
   });
 };
 
-module.exports = { getMe, updateMe, getPublicProfile, getUserProjects };
+module.exports = { getMe, updateMe, deleteMe, getPublicProfile, getUserProjects };
