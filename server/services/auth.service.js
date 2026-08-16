@@ -66,10 +66,14 @@ const register = async ({ name, username, email, password, role }) => {
  * Both "no such user" and "wrong password" return the same message, so the
  * endpoint cannot be used to discover which email addresses are registered.
  */
-const login = async ({ email, password }) => {
+const login = async ({ identifier, password }) => {
   const invalid = ApiError.unauthorized("Invalid email or password");
+  const normalizedIdentifier = String(identifier || "").trim().toLowerCase();
 
-  const user = await User.findOne({ email }).select("+password");
+  const user = await User.findOne({
+    $or: [{ email: normalizedIdentifier }, { username: normalizedIdentifier }],
+  }).select("+password");
+
   if (!user) throw invalid;
 
   const matches = await user.comparePassword(password);

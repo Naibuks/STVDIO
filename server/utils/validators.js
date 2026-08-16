@@ -85,14 +85,14 @@ const validateRegister = (body = {}) => {
 
 const validateLogin = (body = {}) => {
   const errors = [];
-  const { email, password } = body;
+  const { identifier, password } = body;
 
-  if (!isString(email)) errors.push("Email is required");
+  if (!isString(identifier)) errors.push("Email or username is required");
   if (!isString(password)) errors.push("Password is required");
 
   return {
     errors,
-    value: { email: email?.trim().toLowerCase(), password },
+    value: { identifier: identifier?.trim().toLowerCase(), password },
   };
 };
 
