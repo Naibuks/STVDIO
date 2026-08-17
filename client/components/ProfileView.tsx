@@ -185,6 +185,8 @@ export default function ProfileView({
           </h2>
           <ProjectGrid
             projects={projects}
+            // A portfolio is scanned as a whole, so keep the tiles compact.
+            frame="square"
             emptyMessage={
               isOwner
                 ? "You have not published any work yet."

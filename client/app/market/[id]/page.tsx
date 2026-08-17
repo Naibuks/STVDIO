@@ -142,21 +142,19 @@ export default function ServiceDetailPage({
             {service.media.length > 0 && (
               <div className="mt-8 space-y-4">
                 {service.media.map((item, index) => (
-                  <div
+                  <SafeImage
                     key={`${item.url}-${index}`}
-                    className="relative w-full overflow-hidden border border-current/15 bg-current/5 aspect-[4/3]"
-                  >
-                    <SafeImage
-                      src={item.url}
-                      alt={`${service.title} — image ${index + 1}`}
-                      className="h-full w-full object-cover"
-                      fallback={
-                        <div className="flex h-full w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
-                          Image unavailable
-                        </div>
-                      }
-                    />
-                  </div>
+                    src={item.url}
+                    alt={`${service.title} — image ${index + 1}`}
+                    /* Same capped-width treatment as the project page — full
+                       image, never cropped, just not full-column tall. */
+                    className="mx-auto block h-auto w-full max-w-[19rem] object-contain sm:max-w-[26rem] lg:max-w-[34rem] max-h-[80vh]"
+                    fallback={
+                      <div className="flex h-48 w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-widest text-current/40">
+                        Image unavailable
+                      </div>
+                    }
+                  />
                 ))}
               </div>
             )}

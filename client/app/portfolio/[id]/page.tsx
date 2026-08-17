@@ -128,23 +128,28 @@ export default function ProjectDetailPage({
 
         <div className="mt-10 space-y-6">
           {project.media.map((item, index) => (
-            <div
+            <SafeMedia
               key={`${item.url}-${index}`}
-              className="relative w-full overflow-hidden border border-[#1d1d1d] bg-[#111111] aspect-[4/3]"
-            >
-              <SafeMedia
-                media={item}
-                alt={`${project.title} — item ${index + 1}`}
-                className="h-full w-full object-cover"
-                // Full size: videos get controls rather than silent autoplay.
-                variant="full"
-                fallback={
-                  <div className="flex h-full w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[#f5f1ea]/35">
-                    Media unavailable
-                  </div>
-                }
-              />
-            </div>
+              media={item}
+              alt={`${project.title} — item ${index + 1}`}
+              /*
+               * Nothing is cropped here: the width is capped and the height
+               * follows from it, so the whole frame stays visible whatever
+               * ratio it was uploaded at. The cap is what keeps a 9:16 shot
+               * from running metres down a phone screen — the article column
+               * is max-w-5xl, and letting a portrait fill that was the
+               * problem. max-h only catches freak ratios; object-contain
+               * means it scales the image down rather than squashing it.
+               */
+              className="mx-auto block h-auto w-full max-w-[19rem] object-contain sm:max-w-[26rem] lg:max-w-[34rem] max-h-[80vh]"
+              // Full size: videos get controls rather than silent autoplay.
+              variant="full"
+              fallback={
+                <div className="flex h-48 w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[#f5f1ea]/35">
+                  Media unavailable
+                </div>
+              }
+            />
           ))}
         </div>
 

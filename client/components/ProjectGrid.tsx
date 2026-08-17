@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import ProjectCard from "./ProjectCard";
 import type { Project } from "@/types/api";
 
@@ -6,11 +7,14 @@ export default function ProjectGrid({
   emptyMessage = "No work published yet.",
   interactive = false,
   showDescription = false,
+  /** Thumbnail shape — portfolio grids use the compact square. */
+  frame,
 }: {
   projects: Project[];
   emptyMessage?: string;
   interactive?: boolean;
   showDescription?: boolean;
+  frame?: ComponentProps<typeof ProjectCard>["frame"];
 }) {
   if (projects.length === 0) {
     return (
@@ -28,6 +32,7 @@ export default function ProjectGrid({
           project={project}
           interactive={interactive}
           showDescription={showDescription}
+          frame={frame}
         />
       ))}
     </div>

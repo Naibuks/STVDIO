@@ -10,36 +10,46 @@ export default function ServiceCard({ service }: { service: Service }) {
 
   return (
     <article className="group flex flex-col border border-[#1d1d1d] bg-[#0d0d0d] transition-colors duration-200 hover:border-[#2a2a2a]">
-      <Link href={`/market/${service._id}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-[#111111]">
+      <div className="relative">
+        {/*
+          A fixed 4:3 frame with object-cover, for the same reason the project
+          cards have one: listing images arrive at every ratio, and the grid
+          should stay even. Landscape rather than the feed's portrait keeps a
+          listing compact, so price and delivery stay near the fold.
+        */}
+        <Link
+          href={`/market/${service._id}`}
+          className="block aspect-[4/3] overflow-hidden"
+        >
           <SafeImage
             src={cover?.url}
             alt={service.title}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            className="block h-full w-full object-cover transition duration-500 group-hover:scale-[1.01]"
             fallback={
-              <div className="flex h-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-[0.26em] text-[#f5f1ea]/35">
+              <div className="flex h-full w-full items-center justify-center font-mono text-[0.6rem] uppercase tracking-[0.26em] text-[#f5f1ea]/35">
                 {formatCategory(service.category)}
               </div>
             }
           />
-          {!service.isActive && (
-            <span className="absolute left-2 top-2 bg-black/75 px-2 py-1 font-mono text-[0.52rem] uppercase tracking-[0.2em] text-[#f5f1ea]">
-              Unlisted
-            </span>
-          )}
-        </div>
+        </Link>
 
-        <div className="border-t border-[#1d1d1d] p-4">
-          <div className="flex items-start justify-between gap-4">
-            <h3 className="text-[1.3rem] font-medium leading-none tracking-[-0.06em] text-[#f5f1ea]">
-              {service.title}
-            </h3>
-            <span className="shrink-0 font-mono text-[0.52rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
-              {formatCategory(service.category)}
-            </span>
-          </div>
+        {!service.isActive && (
+          <span className="absolute left-2 top-2 bg-black/75 px-2 py-1 font-mono text-[0.52rem] uppercase tracking-[0.2em] text-[#f5f1ea]">
+            Unlisted
+          </span>
+        )}
+      </div>
+
+      <div className="border-t border-[#1d1d1d] p-4">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="text-[1.3rem] font-medium leading-none tracking-[-0.06em] text-[#f5f1ea]">
+            {service.title}
+          </h3>
+          <span className="shrink-0 font-mono text-[0.52rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
+            {formatCategory(service.category)}
+          </span>
         </div>
-      </Link>
+      </div>
 
       <div className="px-4 pb-4">
         <p className="font-mono text-[0.56rem] uppercase tracking-[0.22em] text-[#f5f1ea]/45">
