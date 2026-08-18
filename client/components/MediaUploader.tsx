@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import SafeMedia from "./SafeMedia";
 import { ApiRequestError } from "@/services/api";
 import {
+  ACCEPT_IMAGE,
   ACCEPT_MEDIA,
   checkFile,
   formatBytes,
@@ -30,11 +31,19 @@ export default function MediaUploader({
   value,
   onChange,
   onBusyChange,
+  allowVideo = true,
+  maxItems = MAX_ITEMS,
+  label = "Photos & videos — the first is the cover",
+  accept,
 }: {
   value: Media[];
   onChange: (media: Media[]) => void;
   /** Lets the form disable Publish while an upload is in flight. */
   onBusyChange?: (busy: boolean) => void;
+  allowVideo?: boolean;
+  maxItems?: number;
+  label?: string;
+  accept?: string;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -73,16 +82,16 @@ export default function MediaUploader({
     event.target.value = "";
     if (files.length === 0) return;
 
-    if (value.length + files.length > MAX_ITEMS) {
+    if (value.length + files.length > maxItems) {
       setError(
-        `That would be ${value.length + files.length} files — ${MAX_ITEMS} at most`,
+        `That would be ${value.length + files.length} files — ${maxItems} at most`,
       );
       return;
     }
 
     // Reject the batch on the first bad file so the user is not left guessing
     // which of several uploads silently vanished. The server does the same.
-    const problem = files.map((file) => checkFile(file)).find(Boolean);
+    const problem = files.map((file) => checkFile(file, { allowVideo })).find(Boolean);
     if (problem) {
       setError(problem);
       return;
@@ -123,9 +132,7 @@ export default function MediaUploader({
 
   return (
     <div>
-      <span className={labelClass}>
-        Photos &amp; videos — the first is the cover
-      </span>
+      <span className={labelClass}>{label}</span>
 
       <div className="mt-3 flex flex-wrap gap-3">
         {value.map((media, index) => (
@@ -183,7 +190,7 @@ export default function MediaUploader({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          disabled={uploading || value.length >= MAX_ITEMS}
+          disabled={uploading || value.length >= maxItems}
           className="flex h-24 w-24 items-center justify-center border border-dashed border-current/30 text-center font-mono text-[0.55rem] uppercase leading-tight tracking-widest text-current/50 hover:border-current/60 disabled:opacity-40"
         >
           {uploading ? "Uploading…" : "+ Add files"}
@@ -192,11 +199,11 @@ export default function MediaUploader({
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPT_MEDIA}
+          accept={accept ?? (allowVideo ? ACCEPT_MEDIA : ACCEPT_IMAGE)}
           multiple
           onChange={pick}
           className="hidden"
-          aria-label="Choose photos or videos"
+          aria-label={allowVideo ? "Choose photos or videos" : "Choose service photos"}
         />
       </div>
 

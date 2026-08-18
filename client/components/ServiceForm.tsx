@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SafeImage from "./SafeImage";
+import MediaUploader from "./MediaUploader";
 import { formatCategory } from "@/lib/format";
 import { toMajorUnits, toMinorUnits } from "@/lib/money";
 import {
@@ -9,6 +9,7 @@ import {
   CURRENCIES,
   type Category,
   type Currency,
+  type Media,
   type Service,
   type ServiceInput,
 } from "@/types/api";
@@ -56,9 +57,8 @@ export default function ServiceForm({
   const [deliverables, setDeliverables] = useState(
     (initial?.deliverables ?? []).join(", "),
   );
-  const [mediaText, setMediaText] = useState(
-    (initial?.media ?? []).map((m) => m.url).join("\n"),
-  );
+  const [media, setMedia] = useState<Media[]>(initial?.media ?? []);
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
 
   const errors = { ...localErrors, ...fieldErrors };
@@ -98,11 +98,9 @@ export default function ServiceForm({
       currency,
       deliveryTime: Number(deliveryTime),
       deliverables: splitList(deliverables, /,/),
-      media: splitList(mediaText, /\n+/),
+      media: media.map((item) => item.url),
     });
   };
-
-  const previews = splitList(mediaText, /\n+/);
   const errorFor = (key: string) =>
     errors[key] ? (
       <span role="alert" className="mt-1 block text-xs text-red-500">
@@ -216,35 +214,17 @@ export default function ServiceForm({
         {errorFor("deliverables")}
       </label>
 
-      <label className="block">
-        <span className={labelClass}>Image URLs — one per line</span>
-        <textarea
-          value={mediaText}
-          onChange={(e) => setMediaText(e.target.value)}
-          rows={3}
-          placeholder={"https://…/one.jpg"}
-          className={`${fieldClass} ${borderFor("media")} resize-y font-mono text-xs`}
+      <div className="border-t border-current/15 pt-2">
+        <MediaUploader
+          value={media}
+          onChange={setMedia}
+          onBusyChange={setUploadBusy}
+          allowVideo={false}
+          maxItems={10}
+          label="Service photos — the first is the cover"
         />
         {errorFor("media")}
-      </label>
-
-      {previews.length > 0 && (
-        <div className="flex flex-wrap gap-3">
-          {previews.map((url, index) => (
-            <SafeImage
-              key={`${url}-${index}`}
-              src={url}
-              alt={`Preview ${index + 1}`}
-              className="h-20 w-20 border border-current/15 object-cover"
-              fallback={
-                <div className="flex h-20 w-20 items-center justify-center border border-dashed border-current/25 text-center font-mono text-[0.5rem] uppercase leading-tight tracking-widest text-current/40">
-                  Can&rsquo;t load
-                </div>
-              }
-            />
-          ))}
-        </div>
-      )}
+      </div>
 
       {formError && (
         <p role="alert" className="text-sm text-red-500">
@@ -255,10 +235,10 @@ export default function ServiceForm({
       <div className="flex gap-3 pt-2">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploadBusy}
           className="border border-current px-4 py-3 font-mono text-[0.65rem] uppercase tracking-widest hover:bg-current/5 disabled:opacity-40"
         >
-          {saving ? "Saving…" : submitLabel}
+          {saving ? "Saving…" : uploadBusy ? "Uploading…" : submitLabel}
         </button>
         <button
           type="button"
